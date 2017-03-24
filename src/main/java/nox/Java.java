@@ -29,7 +29,7 @@ public class Java implements Plugin<Project> {
 		ExtensionContainer extensions = project.getExtensions();
 		RepositoryHandler repositories = project.getRepositories();
 
-		extensions.create(Platform.name, Platform.class);
+		extensions.add(Platform.name, Platform.instance(project));
 		extensions.getExtraProperties().set(METHOD_NAME, new PluginDep(project));
 
 		Platform platform = project.getExtensions().findByType(Platform.class);
@@ -38,10 +38,9 @@ public class Java implements Plugin<Project> {
 			repo.setUrl(platform.getTargetPlatformDir());
 			repo.layout("pattern", layout -> {
 				DefaultIvyPatternRepositoryLayout ivyLayout = (DefaultIvyPatternRepositoryLayout) layout;
-				// think about "source"
-				ivyLayout.artifact(String.format("%s/[module]_[revision](-[classifier]).[ext]", Platform.PLUGINS_DIR));
-				ivyLayout.artifact(String.format("%s/[module]_[revision](-[classifier])", Platform.PLUGINS_DIR));
-				ivyLayout.ivy(String.format("%s/[module]_[revision](-[classifier]).[ext]", Platform.IVY_DIR));
+				ivyLayout.artifact(String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.PLUGINS_SUBDIR));
+				ivyLayout.artifact(String.format("%s/[module](.[classifier])_[revision]", Platform.PLUGINS_SUBDIR));
+				ivyLayout.ivy(String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.IVY_SUBDIR));
 			});
 		});
 	}

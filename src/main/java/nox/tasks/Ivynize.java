@@ -6,15 +6,12 @@ package nox.tasks;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import nox.ext.Platform;
-import nox.internal.dep.Bundle;
-import nox.internal.dep.BundleUniverse;
-import nox.internal.dep.Dependency;
-import nox.internal.dep.DependencyResolver;
-import nox.internal.dep.Duplicates;
-import nox.internal.dep.MetadataExporter;
-import nox.internal.dep.impl.DefaultBundleUniverse;
-import nox.internal.dep.impl.DefaultDependencyResolver;
-import nox.internal.dep.impl.IvyMetadataExporter;
+import nox.internal.gradlize.Bundle;
+import nox.internal.gradlize.BundleUniverse;
+import nox.internal.gradlize.Dependency;
+import nox.internal.gradlize.DependencyResolver;
+import nox.internal.gradlize.Duplicates;
+import nox.internal.gradlize.MetadataExporter;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.InputDirectory;
@@ -41,21 +38,21 @@ public class Ivynize extends DefaultTask {
 
 	@InputDirectory
 	public File getPluginsDir() {
-		return new File(platform.getTargetPlatformDir(), Platform.PLUGINS_DIR);
+		return new File(platform.getTargetPlatformDir(), Platform.PLUGINS_SUBDIR);
 	}
 
 	@OutputDirectory
 	public File getIvyDir() {
-		return new File(platform.getTargetPlatformDir(), Platform.IVY_DIR);
+		return new File(platform.getTargetPlatformDir(), Platform.IVY_SUBDIR);
 	}
 
 	public Ivynize() {
 		setGroup("nox.Platform");
-		setDescription("Resolves OSGi target platform bundle dependencies and wraps the former into an Ivy repo " +
-			"(the repo is auto-added with nox.Java).");
+		setDescription("Resolves target platform bundle dependencies into an Ivy repo, " +
+			"the repo is auto-added with nox.Java [implies bundle, create].");
 
 		platform = getProject().getExtensions().findByType(Platform.class);
-		universe = new DefaultBundleUniverse(Duplicates.Overwrite);
+		universe = BundleUniverse.instance(Duplicates.Overwrite);
 
 		getProject().afterEvaluate(project -> getPluginsDir().mkdirs());
 	}
@@ -77,10 +74,10 @@ public class Ivynize extends DefaultTask {
 			for (Bundle bundle : bundles) {
 				universe.with(bundle);
 			}
-			DependencyResolver resolver = new DefaultDependencyResolver(universe);
+			DependencyResolver resolver = DependencyResolver.instance(universe);
 			for (Bundle bundle : bundles) {
 				Collection<Dependency> deps = resolver.resolveFor(bundle);
-				MetadataExporter exporter = new IvyMetadataExporter(bundle, Platform.GROUP_NAME, deps);
+				MetadataExporter exporter = MetadataExporter.instance(bundle, Platform.GROUP_NAME, deps);
 				exporter.exportTo(getIvyDir());
 			}
 		} catch (IOException ex) {

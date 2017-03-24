@@ -30,7 +30,7 @@ public class ManifestGeneratorTest {
 		File jarFile = new File(resource.toURI());
 /*
 		DefaultOsgiManifest manifest = new DefaultOsgiManifest(new BaseDirFileResolver());
-		manifest.setClassesDir(jarFile);
+		manifest.setClassesDir(setJarFile);
 		DefaultManifest foo = manifest.getEffectiveManifest();
 		Assert.assertNotNull(foo);
 */

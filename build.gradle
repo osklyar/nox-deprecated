@@ -3,7 +3,7 @@ apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven'
 
 version = "0.1.1-SNAPSHOT"
-group = "gradle"
+group = "com.silvertern.gradle"
 
 jar.manifest.attributes (
 	"Implementation-Version": version,
@@ -38,6 +38,9 @@ dependencies {
 	compile "com.google.guava:guava:21.0"
 	compile "org.apache.commons:commons-lang3:3.5"
 	compile "commons-io:commons-io:2.5"
+	compile "com.fasterxml.jackson.core:jackson-databind:2.7.3"
+	compile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.7.3"
+	runtime "org.codehaus.woodstox:woodstox-core-asl:4.4.1"
 
 	compile "org.slf4j:slf4j-api:1.7.10"
 
@@ -49,14 +52,16 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
-/*
+javadoc {
+	failOnError false
+}
+
 task javadocJar(type: Jar, dependsOn: javadoc) {
 	classifier = 'javadoc'
 	from javadoc.destinationDir
 }
-*/
 
 artifacts {
 	archives sourcesJar
-	// archives javadocJar
+	archives javadocJar
 }

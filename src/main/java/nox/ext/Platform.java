@@ -3,89 +3,40 @@
  */
 package nox.ext;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import nox.internal.system.OS;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 
-
-public class Platform {
-
-	public static final String name = Platform.class.getSimpleName().toLowerCase();
-
-	public static final String PLUGINS_DIR = "plugins";
-
-	public static final String IVY_DIR = "ivy-metadata";
-
-	public static final String GROUP_NAME = "bundles";
-
-	private static final Logger logger = LoggerFactory.getLogger(Platform.class);
+import org.gradle.api.Project;
 
 
-	private static volatile File root = null;
+public interface Platform {
 
-	private static volatile File targetPlatformDir = null;
-
-	private static volatile File sdkDir = null;
-
-	// do we really want to synchronize getters/setters to these statics? no
-
-	public File getRoot() {
-		return root;
+	static Platform instance(Project project) {
+		return new PlatformImpl(project);
 	}
 
-	public void setRoot(File value) {
-		if (root != null && !Objects.equal(root, value)) {
-			logger.warn("Platform 'root' is already set to a different value");
-		}
-		root = value;
-	}
+	String name = Platform.class.getSimpleName().toLowerCase();
 
-	public File getTargetPlatformDir() {
-		if (targetPlatformDir != null) {
-			return targetPlatformDir;
-		}
-		File root = getRoot();
-		Preconditions.checkNotNull(root, "Platform root undefined");
-		return new File(root, "platform");
-	}
+	String PLUGINS_SUBDIR = "plugins";
 
-	public void setTargetPlatformDir(File value) {
-		if (targetPlatformDir != null && !Objects.equal(targetPlatformDir, value)) {
-			logger.warn("Platform 'targetPlatformDir' is already set to a different value");
-		}
-		targetPlatformDir = value;
-	}
+	String IVY_SUBDIR = "ivy-metadata";
 
-	public File getSdkDir() {
-		if (sdkDir != null) {
-			return sdkDir;
-		}
-		File root = getRoot();
-		Preconditions.checkNotNull(root, "Platform root undefined");
-		if (OS.is(OS.macosx)) {
-			return new File(root, "Eclipse.app");
-		}
-		return new File(root, "eclipse");
-	}
+	String GROUP_NAME = "bundle";
 
-	public void setSdkDir(File value) {
-		if (sdkDir != null && !Objects.equal(sdkDir, value)) {
-			logger.warn("Plaform 'sdkDir' is already set to a different value");
-		}
-		sdkDir = value;
-	}
+	File getRoot();
 
-	public File getSdkExec() {
-		switch (OS.current()) {
-			case win32:
-				return new File(getSdkDir(), "eclipse.exe");
-			case macosx:
-				return new File(getSdkDir(), "Contents/MacOS/eclipse");
-		}
-		return new File(getSdkDir(), "eclipse");
-	}
+	void setRoot(File value);
+
+	File getTargetPlatformDir();
+
+	void setTargetPlatformDir(File value);
+
+	File getSdkDir();
+
+	void setSdkDir(File value);
+
+	File getSdkExec();
+
+	void setP2Dir(File p2Dir);
+
+	File getP2Dir();
 }

@@ -3,37 +3,47 @@
  */
 package nox;
 
+import nox.ext.Bundles;
 import nox.tasks.Bundle;
+import nox.tasks.CleanBundles;
+import nox.tasks.CleanIvy;
+import nox.tasks.CleanPlatform;
 import nox.tasks.Create;
 import nox.tasks.GetSdk;
 import nox.tasks.Ivynize;
-import nox.tasks.Reset;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.slf4j.Logger;
 
 
 public class Platform implements Plugin<Project> {
-
-	private static final Logger logger = Logging.getLogger(Platform.class);
 
 	@Override
 	public void apply(final Project project) {
 		ExtensionContainer extensions = project.getExtensions();
 
-		logger.info("Registering Platform ext for {}", project.getName());
-		extensions.create(nox.ext.Platform.name, nox.ext.Platform.class);
+		extensions.add(nox.ext.Platform.name, nox.ext.Platform.instance(project));
+		extensions.add(Bundles.name, Bundles.instance());
 
 		TaskContainer tasks = project.getTasks();
-		tasks.create(Reset.name, Reset.class);
-		tasks.create(GetSdk.name, GetSdk.class);
+
+		GetSdk getSdk = tasks.create(GetSdk.name, GetSdk.class);
+
 		Bundle bundle = tasks.create(Bundle.name, Bundle.class);
-		Ivynize ivynize = tasks.create(Ivynize.name, Ivynize.class);
-		ivynize.dependsOn(bundle);
 		Create create = tasks.create(Create.name, Create.class);
-		create.dependsOn(ivynize);
+		Ivynize ivynize = tasks.create(Ivynize.name, Ivynize.class);
+
+		create.dependsOn(bundle);
+		ivynize.dependsOn(create);
+
+		CleanBundles cleanBundles = tasks.create(CleanBundles.name, CleanBundles.class);
+		CleanIvy cleanIvy = tasks.create(CleanIvy.name, CleanIvy.class);
+		CleanPlatform cleanPlatform = tasks.create(CleanPlatform.name, CleanPlatform.class);
+
+		cleanIvy.dependsOn(cleanBundles);
+		cleanPlatform.dependsOn(cleanIvy);
+
+		bundle.mustRunAfter(cleanBundles, cleanIvy, cleanPlatform, getSdk);
 	}
 }
