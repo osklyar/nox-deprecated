@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.TaskAction;
@@ -37,6 +38,8 @@ import nox.internal.bundle.Bundlizer;
 import nox.internal.bundle.ManifestConverter;
 import nox.internal.bundle.ResolvedArtifactExt;
 import nox.internal.bundle.RuleDef;
+import nox.internal.gradlize.BundleUniverse;
+import nox.internal.gradlize.Duplicates;
 import nox.internal.platform.Assembler;
 
 
@@ -47,11 +50,17 @@ public class Bundle extends DefaultTask {
 	private static final Logger logger = LoggerFactory.getLogger(Bundle.class);
 
 	private final Platform platform;
+
 	private final Bundles bundles;
 
 	private final List<File> bundleJars = Lists.newArrayList();
 
 	Assembler assembler = Assembler.instance();
+
+	@InputFile
+	public File getBundleConfigFile() {
+		return new File(getProject().getBuildDir(), Bundles.bundlesConfigFile);
+	}
 
 	@OutputDirectory
 	public File getP2Dir() {
@@ -77,6 +86,8 @@ public class Bundle extends DefaultTask {
 	public void action(IncrementalTaskInputs inputs) {
 		if (!inputs.isIncremental()) {
 			action();
+		} else {
+			inputs.outOfDate(na -> action());
 		}
 	}
 
@@ -158,11 +169,12 @@ public class Bundle extends DefaultTask {
 
 		try {
 			assembler.publishBundles(platform.getSdkExec(), getProject().getBuildDir(), getP2Dir());
+
+			// print dependencies that cannot be resolved
+			new UniverseAnalyzer(new File(getP2Dir(), Platform.PLUGINS_SUBDIR)).analyze(BundleUniverse.instance(Duplicates.Forbid));
+
 		} catch (IOException ex) {
 			throw new GradleException("Failed to assemble target platform", ex);
 		}
-
-
-
 	}
 }

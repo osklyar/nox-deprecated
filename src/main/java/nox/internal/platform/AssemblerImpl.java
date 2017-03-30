@@ -54,7 +54,6 @@ class AssemblerImpl implements Assembler {
 		};
 
 		Process p = withProcessLogs(Runtime.getRuntime().exec(execWithEclipseSdk));
-
 		try {
 			int exitCode = p.waitFor();
 			if (exitCode != 0) {
@@ -76,12 +75,12 @@ class AssemblerImpl implements Assembler {
 			"-source", bundleDir.getAbsolutePath(),
 			"-configs", "ANY",
 			"-publishArtifacts",
+			"-roaming",
 			"-nosplash",
 			"-consoleLog",
 		};
 
 		Process p = withProcessLogs(Runtime.getRuntime().exec(execWithEclipseSdk));
-
 		try {
 			int exitCode = p.waitFor();
 			if (exitCode != 0) {
@@ -95,14 +94,21 @@ class AssemblerImpl implements Assembler {
 
 	private Process withProcessLogs(Process p) {
 		new Thread(() -> {
-			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			try {
-				String line;
-				while ((line = input.readLine()) != null) {
+			try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				for (String line = input.readLine(); line != null; line = input.readLine()) {
 					logger.info(line);
 				}
 			} catch (IOException e) {
-				logger.error("Error reading eclipse SDK input: {}", e);
+				logger.error("Error reading eclipse SDK output: {}", e);
+			}
+		}).start();
+		new Thread(() -> {
+			try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+				for (String line = input.readLine(); line != null; line = input.readLine()) {
+					logger.warn(line);
+				}
+			} catch (IOException e) {
+				logger.error("Error reading eclipse SDK error output: {}", e);
 			}
 		}).start();
 		return p;

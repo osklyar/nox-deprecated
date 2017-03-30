@@ -3,16 +3,18 @@
  */
 package nox.ext;
 
+import java.util.List;
+
 import groovy.lang.Closure;
 import nox.internal.bundle.BundleDef;
 import nox.internal.bundle.RuleDef;
-
-import java.util.List;
 
 
 public interface Bundles {
 
 	String name = Bundles.class.getSimpleName().toLowerCase();
+
+	String bundlesConfigFile = "bundles-config.json";
 
 	static Bundles instance() {
 		return new BundlesImpl();

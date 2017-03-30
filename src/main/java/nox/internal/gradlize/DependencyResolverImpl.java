@@ -3,14 +3,6 @@
  */
 package nox.internal.gradlize;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import nox.internal.entity.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +10,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.SortedSet;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import nox.internal.entity.Version;
 
 
 class DependencyResolverImpl implements DependencyResolver {
@@ -40,10 +42,10 @@ class DependencyResolverImpl implements DependencyResolver {
 				if (!okBundleVersions.isEmpty()) {
 					depRange.put(bundleReq.name, Sets.newTreeSet(okBundleVersions));
 				} else if (!allBundleVersions.isEmpty()) {
-					logger.info("Required bundle dependency {} version mismatch for {}", bundleReq.name, bundle);
+					logger.info(":bundle -> {} => version mismatch for bundle {}", bundle, bundleReq.name);
 					depRange.put(bundleReq.name, allBundleVersions);
 				} else {
-					logger.warn("Required bundle dependency {} not available for {}", bundleReq.name, bundle);
+					logger.error(":bundle -> {} => missing required bundle {}", bundle, bundleReq.name);
 				}
 			}
 		}
@@ -75,7 +77,7 @@ class DependencyResolverImpl implements DependencyResolver {
 		SortedMap<Version, Bundle> allPkgVersions = universe.packageVersionsWithExportingBundles(pkgReq.name);
 		allPkgVersions = Maps.filterValues(allPkgVersions, implBundle -> !Objects.equal(implBundle.name, bundle.name));
 		if (allPkgVersions.isEmpty()) {
-			logger.warn("No bundle exports package {} required by {}", pkgReq.name, bundle);
+			logger.error(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
 			return null;
 		}
 
@@ -97,7 +99,7 @@ class DependencyResolverImpl implements DependencyResolver {
 		}
 		Entry<String, SortedSet<Version>> res = new SimpleEntry<>(bundleName, bundleVersions);
 		if (imperfectMatch) {
-			logger.warn("Package requirement {} version mismatch {} for bundle {}", pkgReq, res, bundle);
+			logger.info(":bundle -> {} => version mismatch for package {}: {}", bundle, pkgReq, res);
 		}
 		return res;
 	}

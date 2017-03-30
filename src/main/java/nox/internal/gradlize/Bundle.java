@@ -3,15 +3,6 @@
  */
 package nox.internal.gradlize;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import nox.internal.entity.Version;
-import nox.internal.entity.Versioned;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +11,17 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import org.apache.commons.lang3.StringUtils;
+
+import nox.internal.entity.Version;
+import nox.internal.entity.Versioned;
 
 
 public class Bundle extends Versioned {
@@ -85,6 +87,9 @@ public class Bundle extends Versioned {
 			Version from = Version.MIN;
 			Version to = Version.MAX;
 			String versionString = entry.getValue().get("version");
+			if (StringUtils.isBlank(versionString)) {
+				versionString = entry.getValue().get("bundle-version");
+			}
 			if (StringUtils.isNotBlank(versionString)) {
 				Matcher matcher = MF_VERS_PATTERN.matcher(versionString);
 				if (matcher.find()) {

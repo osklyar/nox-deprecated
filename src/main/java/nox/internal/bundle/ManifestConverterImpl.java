@@ -3,16 +3,6 @@
  */
 package nox.internal.bundle;
 
-import aQute.bnd.osgi.Analyzer;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import nox.internal.entity.Version;
-import nox.internal.entity.Version.Component;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -21,6 +11,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+
+import aQute.bnd.osgi.Analyzer;
+import nox.internal.entity.Version;
+import nox.internal.entity.Version.Component;
 
 
 class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Configurator {
@@ -177,7 +179,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		for (ModuleVersionIdentifier moduleId : requiredModules) {
 			String symbolicName = manifestUtil.bundleSymbolicName(moduleId, ruleDefs);
 			Version version = manifestUtil.bundleVersion(moduleId, ruleDefs);
-			res.add(String.format("%s;version=\"[%s,%s)\"", symbolicName,
+			res.add(String.format("%s;bundle-version=\"[%s,%s)\"", symbolicName,
 				version.toString(Component.Minor),
 				version.nextMajor().toString(Component.Major)));
 		}
