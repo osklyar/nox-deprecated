@@ -6,6 +6,7 @@ package nox.tasks;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,13 +74,14 @@ public class Create extends DefaultTask {
 	public void action(IncrementalTaskInputs inputs) {
 		if (!inputs.isIncremental()) {
 			action();
-			return;
+		} else {
+			AtomicBoolean pending = new AtomicBoolean(true);
+			inputs.outOfDate(details -> {
+				if (pending.getAndSet(false)) {
+					action();
+				}
+			});
 		}
-		inputs.outOfDate(details -> {
-			if (getP2Dir().equals(details.getFile())) {
-				action();
-			}
-		});
 	}
 
 	private void action() {
