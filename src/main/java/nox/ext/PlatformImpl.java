@@ -3,11 +3,18 @@
  */
 package nox.ext;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,4 +119,46 @@ class PlatformImpl implements Platform {
 		}
 		return new File(project.getBuildDir(), BUILD_P2);
 	}
+
+	@Override
+	public int execEclipseApp(String application, String... args) throws IOException {
+		List<String> cmd = Lists.newArrayList(
+			getSdkExec().getAbsolutePath(),
+			"-application",
+			application);
+		cmd.addAll(Arrays.asList(args));
+		cmd.add("-roaming");
+		cmd.add("-nosplash");
+		cmd.add("-consoleLog");
+
+		try {
+			return withProcessLogs(cmd).waitFor();
+		} catch (InterruptedException ex) {
+			throw new GradleException("Interrupted");
+		}
+	}
+
+	private Process withProcessLogs(List<String> cmd) throws IOException {
+		Process p = Runtime.getRuntime().exec(cmd.toArray(new String[] {}));
+		new Thread(() -> {
+			try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				for (String line = input.readLine(); line != null; line = input.readLine()) {
+					logger.info(line);
+				}
+			} catch (IOException e) {
+				logger.error("Error reading eclipse SDK output: {}", e);
+			}
+		}).start();
+		new Thread(() -> {
+			try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+				for (String line = input.readLine(); line != null; line = input.readLine()) {
+					logger.warn(line);
+				}
+			} catch (IOException e) {
+				logger.error("Error reading eclipse SDK error output: {}", e);
+			}
+		}).start();
+		return p;
+	}
+
 }

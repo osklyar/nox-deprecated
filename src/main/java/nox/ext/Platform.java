@@ -4,6 +4,7 @@
 package nox.ext;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.gradle.api.Project;
 
@@ -39,4 +40,6 @@ public interface Platform {
 	void setP2Dir(File p2Dir);
 
 	File getP2Dir();
+
+	int execEclipseApp(String application, String... args) throws IOException;
 }

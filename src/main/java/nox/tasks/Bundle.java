@@ -40,7 +40,6 @@ import nox.internal.bundle.ResolvedArtifactExt;
 import nox.internal.bundle.RuleDef;
 import nox.internal.gradlize.BundleUniverse;
 import nox.internal.gradlize.Duplicates;
-import nox.internal.platform.Assembler;
 
 
 public class Bundle extends DefaultTask {
@@ -54,8 +53,6 @@ public class Bundle extends DefaultTask {
 	private final Bundles bundles;
 
 	private final List<File> bundleJars = Lists.newArrayList();
-
-	Assembler assembler = Assembler.instance();
 
 	@InputFile
 	public File getBundleConfigFile() {
@@ -104,8 +101,8 @@ public class Bundle extends DefaultTask {
 			throw new GradleException(String.format("Failed to create plugins directory %s", pluginsDir));
 		}
 
-		ArtifactResolver resolver = ArtifactResolver
-			.withDependencyHelper(	getProject().getDependencies())
+		ArtifactResolver resolver = ArtifactResolver.withDependencyHelper(
+			getProject().getDependencies())
 			.withConfigurationContainer(getProject().getConfigurations())
 			.withSources(bundles.getWithSources())
 			.instance();
@@ -126,8 +123,8 @@ public class Bundle extends DefaultTask {
 					Preconditions.checkNotNull(jar, "Artifact file not found for %s", moduleId);
 					Manifest originalManifest = new JarFile(jar).getManifest();
 
-					ManifestConverter converter = ManifestConverter
-						.withModuleId(artifact.artifact.getModuleVersion().getId())
+					ManifestConverter converter = ManifestConverter.withModuleId(
+						artifact.artifact.getModuleVersion().getId())
 						.withManifest(originalManifest)
 						.withClassesJarOrDir(jar)
 						.withRequiredModules(artifact.requiredModules)
@@ -150,7 +147,8 @@ public class Bundle extends DefaultTask {
 						String bundleSymbolicName = attrs.getValue(Analyzer.BUNDLE_SYMBOLICNAME);
 						String bundleVersion = attrs.getValue(Analyzer.BUNDLE_VERSION);
 						attrs.putValue(Analyzer.BUNDLE_SYMBOLICNAME, bundleSymbolicName + ".source");
-						attrs.putValue("Eclipse-SourceBundle", String.format("%s;version=\"%s\"", bundleSymbolicName, bundleVersion));
+						attrs.putValue("Eclipse-SourceBundle",
+							String.format("%s;version=\"%s\"", bundleSymbolicName, bundleVersion));
 						attrs.remove(new Name(Analyzer.REQUIRE_BUNDLE));
 						attrs.remove(new Name(Analyzer.REQUIRE_CAPABILITY));
 						attrs.remove(new Name(Analyzer.IMPORT_PACKAGE));
@@ -160,7 +158,6 @@ public class Bundle extends DefaultTask {
 						bundleJars.add(bundleJar);
 						logger.info(":bundle {} -> {} source => {}", bundleDef, moduleId, bundleJar);
 					}
-
 				} catch (IOException ex) {
 					logger.error("Failed to bundlize {} as a dependency of {}: {}", moduleId, bundleDef, ex);
 				}
@@ -168,11 +165,18 @@ public class Bundle extends DefaultTask {
 		}
 
 		try {
-			assembler.publishBundles(platform.getSdkExec(), getProject().getBuildDir(), getP2Dir());
+			String repopath = "file://" + getP2Dir().getAbsolutePath();
+			String buildpath = getProject().getBuildDir().getAbsolutePath();
+			if (0 != platform.execEclipseApp(
+				"org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher", "-metadataRepository",
+				repopath, "-artifactRepository", repopath, "-source", buildpath, "-configs", "ANY",
+				"-publishArtifacts")) {
+				throw new GradleException(String.format("Failed to publish artifacts into %s", getP2Dir()));
+			}
 
 			// print dependencies that cannot be resolved
-			new UniverseAnalyzer(new File(getP2Dir(), Platform.PLUGINS_SUBDIR)).analyze(BundleUniverse.instance(Duplicates.Forbid));
-
+			new UniverseAnalyzer(new File(getP2Dir(), Platform.PLUGINS_SUBDIR)).analyze(
+				BundleUniverse.instance(Duplicates.Forbid));
 		} catch (IOException ex) {
 			throw new GradleException("Failed to assemble target platform", ex);
 		}

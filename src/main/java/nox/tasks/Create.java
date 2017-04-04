@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.InputDirectory;
@@ -25,11 +26,13 @@ import org.gradle.util.ConfigureUtil;
 
 import groovy.lang.Closure;
 import nox.ext.Platform;
-import nox.internal.platform.Assembler;
 import nox.internal.platform.Location;
 import nox.internal.platform.Repository;
 import nox.internal.platform.Target;
 import nox.internal.platform.Unit;
+import nox.internal.system.Arch;
+import nox.internal.system.OS;
+import nox.internal.system.Win;
 
 
 public class Create extends DefaultTask {
@@ -57,11 +60,6 @@ public class Create extends DefaultTask {
 		return platform.getTargetPlatformDir();
 	}
 
-	public String pdeVersion = "3.8";
-
-	/* open for testing */
-	Assembler assembler = Assembler.instance();
-
 
 	public Create() {
 		setGroup("nox.Platform");
@@ -86,7 +84,7 @@ public class Create extends DefaultTask {
 
 	private void action() {
 		Target target = new Target("foo")
-			.withPdeVersion(pdeVersion)
+			.withPdeVersion("3.8")
 			.withLocations(locations);
 		File[] files = new File(getP2Dir(), Platform.PLUGINS_SUBDIR).listFiles();
 		if (files != null) {
@@ -106,7 +104,26 @@ public class Create extends DefaultTask {
 			FileUtils.deleteDirectory(getTargetPlatformDir());
 			getTargetPlatformDir().mkdirs();
 
-			assembler.assemble(platform.getSdkExec(), target, getTargetPlatformDir());
+			List<String> urls = Lists.newArrayList();
+			List<String> units = Lists.newArrayList();
+			for (Location location : target.locations.location) {
+				urls.add(location.repository.location);
+				units.addAll(Lists.transform(location.unit, unit -> String.format("%s/%s", unit.id, unit.version)));
+			}
+
+			String platformDir = getTargetPlatformDir().getAbsolutePath();
+			if (0 != platform.execEclipseApp("org.eclipse.equinox.p2.director",
+				"-repository", StringUtils.join(locations, ","),
+				"-installIU", StringUtils.join(units, ","),
+				"-tag", "target-platform",
+				"-destination", platformDir,
+				"-profile", "SDKProfile",
+				"-bundlepool", platformDir,
+				"-p2.os", OS.current().toString(),
+				"-p2.ws", Win.current().toString(),
+				"-p2.arch", Arch.current().toString())) {
+				throw new GradleException("Eclipse application ended with an error");
+			}
 		} catch (IOException ex) {
 			throw new GradleException("Failed to assemble target platform", ex);
 		}
