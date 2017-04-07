@@ -3,19 +3,19 @@
  */
 package nox.tasks;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Attributes.Name;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-
+import aQute.bnd.osgi.Analyzer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
+import nox.ext.Bundles;
+import nox.ext.Platform;
+import nox.internal.bundle.ArtifactResolver;
+import nox.internal.bundle.BundleDef;
+import nox.internal.bundle.Bundlizer;
+import nox.internal.bundle.ManifestConverter;
+import nox.internal.bundle.ResolvedArtifactExt;
+import nox.internal.bundle.RuleDef;
+import nox.internal.gradlize.BundleUniverse;
+import nox.internal.gradlize.Duplicates;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -29,17 +29,15 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import aQute.bnd.osgi.Analyzer;
-import nox.ext.Bundles;
-import nox.ext.Platform;
-import nox.internal.bundle.ArtifactResolver;
-import nox.internal.bundle.BundleDef;
-import nox.internal.bundle.Bundlizer;
-import nox.internal.bundle.ManifestConverter;
-import nox.internal.bundle.ResolvedArtifactExt;
-import nox.internal.bundle.RuleDef;
-import nox.internal.gradlize.BundleUniverse;
-import nox.internal.gradlize.Duplicates;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Attributes.Name;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 
 public class Bundle extends DefaultTask {
@@ -154,9 +152,11 @@ public class Bundle extends DefaultTask {
 						attrs.remove(new Name(Analyzer.IMPORT_PACKAGE));
 						attrs.remove(new Name(Analyzer.EXPORT_PACKAGE));
 
-						bundleJar = bundlizer.bundleJar(artifact.sourceJar, sourceManifest);
-						bundleJars.add(bundleJar);
-						logger.info(":bundle {} -> {} source => {}", bundleDef, moduleId, bundleJar);
+						File bundleSourceJar = bundlizer.bundleJar(artifact.sourceJar, sourceManifest);
+						if (bundleSourceJar != null) {
+							bundleJars.add(bundleSourceJar);
+							logger.info(":bundle {} -> {} source => {}", bundleDef, moduleId, bundleSourceJar);
+						}
 					}
 				} catch (IOException ex) {
 					logger.error("Failed to bundlize {} as a dependency of {}: {}", moduleId, bundleDef, ex);
@@ -176,7 +176,7 @@ public class Bundle extends DefaultTask {
 
 			// print dependencies that cannot be resolved
 			new UniverseAnalyzer(new File(getP2Dir(), Platform.PLUGINS_SUBDIR)).analyze(
-				BundleUniverse.instance(Duplicates.Forbid));
+				BundleUniverse.instance(Duplicates.Overwrite));
 		} catch (IOException ex) {
 			throw new GradleException("Failed to assemble target platform", ex);
 		}

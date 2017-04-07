@@ -41,7 +41,7 @@ public class Version implements Comparable<Version> {
 
 	public Version(String versionString, boolean withSuffix) {
 		Preconditions.checkNotNull(versionString, "Version string required");
-		String[] parts = versionString.trim().split("\\.");
+		String[] parts = versionString.trim().split("\\.|-");
 		if (parts.length < 1) {
 			throw new IllegalArgumentException("Major version is required");
 		}
@@ -52,7 +52,13 @@ public class Version implements Comparable<Version> {
 			minor = 0;
 		}
 		if (parts.length > 2) {
-			build = Long.valueOf(parts[2]).longValue();
+			long buildno = 0;
+			try {
+				buildno = Long.valueOf(parts[2]).longValue();
+			} catch (NumberFormatException ex) {
+				// ignore
+			}
+			build = buildno;
 		} else {
 			build = 0;
 		}

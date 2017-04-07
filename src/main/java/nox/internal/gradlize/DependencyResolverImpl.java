@@ -3,6 +3,14 @@
  */
 package nox.internal.gradlize;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import nox.internal.entity.Version;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.List;
@@ -10,16 +18,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.SortedSet;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import nox.internal.entity.Version;
 
 
 class DependencyResolverImpl implements DependencyResolver {
@@ -77,7 +75,11 @@ class DependencyResolverImpl implements DependencyResolver {
 		SortedMap<Version, Bundle> allPkgVersions = universe.packageVersionsWithExportingBundles(pkgReq.name);
 		allPkgVersions = Maps.filterValues(allPkgVersions, implBundle -> !Objects.equal(implBundle.name, bundle.name));
 		if (allPkgVersions.isEmpty()) {
-			logger.error(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
+			if (pkgReq.name.startsWith("org.eclipse") || pkgReq.name.startsWith("org.osgi")) {
+				logger.info(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
+			} else {
+				logger.error(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
+			}
 			return null;
 		}
 

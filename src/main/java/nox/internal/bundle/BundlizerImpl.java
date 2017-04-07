@@ -3,6 +3,14 @@
  */
 package nox.internal.bundle;
 
+import aQute.bnd.osgi.Analyzer;
+import com.google.common.collect.Maps;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,14 +21,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.jar.Manifest;
-
-import com.google.common.collect.Maps;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import java.util.zip.ZipError;
 
 
 class BundlizerImpl implements Bundlizer {
+
+	private static final Logger logger = LoggerFactory.getLogger(BundlizerImpl.class);
 
 	private final File targetDir;
 
@@ -56,6 +62,13 @@ class BundlizerImpl implements Bundlizer {
 			try (OutputStream os = Files.newOutputStream(nf, StandardOpenOption.CREATE)) {
 				manifest.write(os);
 			}
+		} catch (ZipError ex) {
+			String message = String.format("Failed to write manifest to %s", targetFile);
+			if (!manifest.getMainAttributes().getValue(Analyzer.BUNDLE_SYMBOLICNAME).endsWith(".source")) {
+				throw new GradleException(message, ex);
+			}
+			logger.error(message + ": {}", ex.getMessage());
+			return null;
 		}
 		return targetFile;
 	}
