@@ -112,8 +112,11 @@ public class Bundle extends DefaultTask {
 		for (BundleDef bundleDef : bundles.getBundleDefs()) {
 			List<RuleDef> ruleDefs = Lists.newArrayList();
 			ruleDefs.addAll(bundles.getRuleDefs());
-			// TODO add all bundledefs as top-level rules (think about version though): so that e.g.
-			// symbolicname cleanly overwritten in all transitive dependencies as well
+			for (BundleDef def: bundles.getBundleDefs()) {
+				if (def != bundleDef) {
+					ruleDefs.add(def);
+				}
+			}
 			ruleDefs.addAll(bundleDef.getRuleDefs());
 			ruleDefs = Collections.unmodifiableList(ruleDefs);
 
