@@ -3,19 +3,16 @@
  */
 package nox.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
-import nox.ext.Platform;
-import nox.internal.platform.Location;
-import nox.internal.platform.Repository;
-import nox.internal.platform.Target;
-import nox.internal.platform.Unit;
-import nox.internal.system.Arch;
-import nox.internal.system.OS;
-import nox.internal.system.Win;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
@@ -27,10 +24,15 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import groovy.lang.Closure;
+import nox.ext.Platform;
+import nox.internal.platform.Location;
+import nox.internal.platform.Repository;
+import nox.internal.platform.Target;
+import nox.internal.platform.Unit;
+import nox.internal.system.Arch;
+import nox.internal.system.OS;
+import nox.internal.system.Win;
 
 
 public class Create extends DefaultTask {

@@ -152,7 +152,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		set(analyzer, Analyzer.EXPORT_PACKAGE, "*;-noimport:=true;version=" + bundleVersion.toString(Component.Build));
 
 		analyzer.setBundleSymbolicName(bundleSymbolicName);
-		analyzer.setBundleVersion(bundleVersion.toString());
+		analyzer.setBundleVersion(bundleVersion.toString(Component.Build));
 
 		analyzer.setJar(classesJarOrDir);
 		if (!classpath.isEmpty()) {
