@@ -3,14 +3,6 @@
  */
 package nox.internal.gradlize;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import nox.internal.entity.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +10,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.SortedSet;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import nox.internal.entity.Version;
 
 
 class DependencyResolverImpl implements DependencyResolver {
@@ -33,10 +35,11 @@ class DependencyResolverImpl implements DependencyResolver {
 	@Override
 	public Collection<Dependency> resolveFor(Bundle bundle) {
 		Map<String, SortedSet<Version>> depRange = Maps.newHashMap();
-		for (Requirement bundleReq: bundle.requiredBundles) {
+		for (Requirement bundleReq : bundle.requiredBundles) {
 			if (!bundleReq.optional && !Objects.equal(bundle.name, bundleReq.name)) {
 				SortedSet<Version> allBundleVersions = universe.bundleVersions(bundleReq.name);
-				SortedSet<Version> okBundleVersions = allBundleVersions.subSet(bundleReq.from, bundleReq.to);
+				SortedSet<Version> okBundleVersions = allBundleVersions.subSet(bundleReq.from,
+					bundleReq.to);
 				if (!okBundleVersions.isEmpty()) {
 					depRange.put(bundleReq.name, Sets.newTreeSet(okBundleVersions));
 				} else if (!allBundleVersions.isEmpty()) {
@@ -48,7 +51,7 @@ class DependencyResolverImpl implements DependencyResolver {
 			}
 		}
 
-		for (Requirement pkgReq: bundle.importedPackages) {
+		for (Requirement pkgReq : bundle.importedPackages) {
 			Entry<String, SortedSet<Version>> dep = resolveForPackage(bundle, pkgReq);
 			if (dep != null) {
 				depRange.put(dep.getKey(), dep.getValue()); // possibly overwrite with more stringent
@@ -56,8 +59,9 @@ class DependencyResolverImpl implements DependencyResolver {
 		}
 
 		List<Dependency> res = Lists.newArrayList();
-		for (Entry<String, SortedSet<Version>> entry: depRange.entrySet()) {
-			res.add(new Dependency(entry.getKey(), entry.getValue().last())); // above code guarantees at least 1 value
+		for (Entry<String, SortedSet<Version>> entry : depRange.entrySet()) {
+			res.add(new Dependency(entry.getKey(),
+				entry.getValue().last())); // above code guarantees at least 1 value
 		}
 		if (!res.isEmpty()) {
 			logger.debug("Dependency set for {}: {}", bundle, res);
@@ -69,17 +73,21 @@ class DependencyResolverImpl implements DependencyResolver {
 	// - may restrict the version range of current
 	// - if no exact matching found may return mismatching version range for implementing bundle (will keep current)
 	private Entry<String, SortedSet<Version>> resolveForPackage(Bundle bundle, Requirement pkgReq) {
-		if (pkgReq.optional || pkgReq.name.startsWith("javax.")) {
+		if (pkgReq.optional || pkgReq.name.startsWith("org.eclipse") || pkgReq.name.startsWith(
+			"org.osgi") || pkgReq.name.startsWith("javax.") || pkgReq.name.startsWith("org.w3c.dom")) {
 			return null;
 		}
-		SortedMap<Version, Bundle> allPkgVersions = universe.packageVersionsWithExportingBundles(pkgReq.name);
-		allPkgVersions = Maps.filterValues(allPkgVersions, implBundle -> !Objects.equal(implBundle.name, bundle.name));
-		if (allPkgVersions.isEmpty()) {
-			if (pkgReq.name.startsWith("org.eclipse") || pkgReq.name.startsWith("org.osgi")) {
-				logger.info(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
-			} else {
-				logger.error(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
+		for (ExportedPackage expPack: bundle.exportedPackages) {
+			if (pkgReq.name.equals(expPack.name)) {
+				return null;
 			}
+		}
+		SortedMap<Version, Bundle> allPkgVersions = universe.packageVersionsWithExportingBundles(
+			pkgReq.name);
+		allPkgVersions = Maps.filterValues(allPkgVersions,
+			implBundle -> !Objects.equal(implBundle.name, bundle.name));
+		if (allPkgVersions.isEmpty()) {
+			logger.error(":bundle -> {} => missing required package {}", bundle, pkgReq.name);
 			return null;
 		}
 
@@ -105,5 +113,4 @@ class DependencyResolverImpl implements DependencyResolver {
 		}
 		return res;
 	}
-
 }

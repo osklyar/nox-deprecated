@@ -3,20 +3,21 @@
  */
 package nox.tasks;
 
-import aQute.bnd.osgi.Analyzer;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Attributes.Name;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import nox.ext.Bundles;
-import nox.ext.Platform;
-import nox.internal.bundle.ArtifactResolver;
-import nox.internal.bundle.BundleDef;
-import nox.internal.bundle.Bundlizer;
-import nox.internal.bundle.ManifestConverter;
-import nox.internal.bundle.ResolvedArtifactExt;
-import nox.internal.bundle.RuleDef;
-import nox.internal.gradlize.BundleUniverse;
-import nox.internal.gradlize.Duplicates;
+
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,15 +30,17 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Attributes.Name;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
+import aQute.bnd.osgi.Analyzer;
+import nox.ext.Bundles;
+import nox.ext.Platform;
+import nox.internal.bundle.ArtifactResolver;
+import nox.internal.bundle.BundleDef;
+import nox.internal.bundle.Bundlizer;
+import nox.internal.bundle.ManifestConverter;
+import nox.internal.bundle.ResolvedArtifactExt;
+import nox.internal.bundle.RuleDef;
+import nox.internal.gradlize.BundleUniverse;
+import nox.internal.gradlize.Duplicates;
 
 
 public class Bundle extends DefaultTask {
@@ -109,6 +112,8 @@ public class Bundle extends DefaultTask {
 		for (BundleDef bundleDef : bundles.getBundleDefs()) {
 			List<RuleDef> ruleDefs = Lists.newArrayList();
 			ruleDefs.addAll(bundles.getRuleDefs());
+			// TODO add all bundledefs as top-level rules (think about version though): so that e.g.
+			// symbolicname cleanly overwritten in all transitive dependencies as well
 			ruleDefs.addAll(bundleDef.getRuleDefs());
 			ruleDefs = Collections.unmodifiableList(ruleDefs);
 
@@ -116,6 +121,11 @@ public class Bundle extends DefaultTask {
 			for (ResolvedArtifactExt artifact : artifacts) {
 				ModuleVersionIdentifier moduleId = artifact.artifact.getModuleVersion().getId();
 				Preconditions.checkNotNull(moduleId, "Module Id must be available");
+
+				if (isTransitiveWithBundleOverride(bundles.getBundleDefs(), bundleDef, moduleId)) {
+					continue;
+				}
+
 				try {
 					File jar = artifact.artifact.getFile();
 					Preconditions.checkNotNull(jar, "Artifact file not found for %s", moduleId);
@@ -180,5 +190,27 @@ public class Bundle extends DefaultTask {
 		} catch (IOException ex) {
 			throw new GradleException("Failed to assemble target platform", ex);
 		}
+	}
+
+	private boolean isTransitiveWithBundleOverride(Collection<BundleDef> defs, BundleDef origin,
+		ModuleVersionIdentifier moduleId) {
+		if (origin.getGroupId().equals(moduleId.getGroup()) &&
+			origin.getArtifactId().equals(moduleId.getName()) &&
+			isVersionMatch(moduleId.getVersion(), origin.getVersion())) {
+			return false;
+		}
+		for (BundleDef def: defs) {
+			if (def.getGroupId().equals(moduleId.getGroup()) &&
+				def.getArtifactId().equals(moduleId.getName()) &&
+				isVersionMatch(moduleId.getVersion(), def.getVersion())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isVersionMatch(String moduleVersion, String searchValue) {
+		searchValue = searchValue.replaceAll("\\+", "");
+		return StringUtils.isBlank(searchValue) || moduleVersion.startsWith(searchValue);
 	}
 }

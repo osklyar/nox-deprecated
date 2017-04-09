@@ -3,14 +3,6 @@
  */
 package nox.internal.bundle;
 
-import com.google.common.base.Objects;
-import nox.internal.entity.Version;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -18,14 +10,20 @@ import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+
+import nox.internal.entity.Version;
+
 import static java.time.temporal.ChronoField.DAY_OF_MONTH;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 import static java.time.temporal.ChronoField.YEAR;
 
 
 class ManifestConverterUtil {
-
-	private static final Logger logger = LoggerFactory.getLogger(ManifestConverterUtil.class);
 
 	private static final DateTimeFormatter formatter =
 		new DateTimeFormatterBuilder()
@@ -39,6 +37,9 @@ class ManifestConverterUtil {
 			.appendValue(ChronoField.MINUTE_OF_HOUR, 2).toFormatter();
 
 	boolean isRelevant(RuleDef ruleDef, ModuleVersionIdentifier moduleId) {
+		if (StringUtils.isBlank(ruleDef.getGroupId())) {
+			return true;
+		}
 		if (!Objects.equal(ruleDef.getGroupId(), moduleId.getGroup())) {
 			return false;
 		}
