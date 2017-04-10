@@ -3,6 +3,8 @@
  */
 package nox;
 
+import java.util.Map;
+
 import com.google.common.base.Preconditions;
 
 import org.gradle.api.Plugin;
@@ -14,6 +16,8 @@ import org.gradle.api.internal.artifacts.repositories.layout.DefaultIvyPatternRe
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import groovy.lang.Closure;
 import nox.ext.Platform;
@@ -25,6 +29,8 @@ import nox.internal.system.Win;
 public class Java implements Plugin<Project> {
 
 	private static final String METHOD_NAME = "bundle";
+
+	private static final Logger logger = LoggerFactory.getLogger(Java.class);
 
 	@Override
 	public void apply(Project project) {
@@ -56,8 +62,11 @@ public class Java implements Plugin<Project> {
 
 	private static class PluginDep extends Closure<ClientModule> {
 
+		private final Project p;
+
 		public PluginDep(Project project) {
 			super(project);
+			this.p = project;
 		}
 
 		@Override
@@ -65,6 +74,13 @@ public class Java implements Plugin<Project> {
 			Preconditions.checkArgument(args.length == 2, "Expected module name and version");
 			String name = String.valueOf(args[0]);
 			String version = String.valueOf(args[1]);
+
+			Platform platform = p.getExtensions().findByType(Platform.class);
+			Map<String, String> bundleMapping = platform.bundleMapping();
+			if (bundleMapping.containsKey(name)) {
+				logger.info("=> in module {} remapped target platform bundle {} to {}", p.getName(), name, bundleMapping.get(name));
+				name = bundleMapping.get(name);
+			}
 			return new DefaultClientModule(Platform.GROUP_NAME, name, version);
 		}
 	}

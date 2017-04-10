@@ -20,6 +20,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
@@ -34,9 +37,14 @@ import nox.internal.bundle.OSGiManifest;
 public class OSGi implements Plugin<Project> {
 
 	/**
-	 * Add unpackOSGiManifest=false to gradle.properties to prevent copying
+	 * Add osgi-unpackManifest=false to gradle.properties to prevent copying
 	 */
 	private static final String UNPACK_OSGI_MANIFEST = "osgi-unpackManifest";
+
+	/**
+	 * Add osgi-requireBundles=true to gradle.properties to require bundles
+	 */
+	private static final String REQUIRE_BUNDLES = "osgi-requireBundles";
 
 	@Override
 	public void apply(Project project) {
@@ -65,10 +73,32 @@ public class OSGi implements Plugin<Project> {
 		Jar jarTask = (Jar) project.getTasks().getByName("jar");
 		jarTask.setManifest(manifest);
 
+		registerUnpackAction(project);
+
+		project.afterEvaluate(p -> registerJarManifestAction(p, manifest));
+	}
+
+	private void registerJarManifestAction(Project project, OSGiManifest manifest) {
+		ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
+		if (ext.has(REQUIRE_BUNDLES) && Boolean.valueOf(
+			String.valueOf(ext.get(REQUIRE_BUNDLES))).booleanValue()) {
+			for (ResolvedArtifact artifact : project.getConfigurations()
+				.getByName("runtime")
+				.getResolvedConfiguration()
+				.getResolvedArtifacts()) {
+				ModuleVersionIdentifier resolvedId = artifact.getModuleVersion().getId();
+				manifest.withBundleDependency(
+					new DefaultModuleVersionIdentifier(resolvedId.getName(), resolvedId.getName(), resolvedId.getVersion()));
+			}
+		}
+	}
+
+	private void registerUnpackAction(Project project) {
 		ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
 		if (!ext.has(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
 			String.valueOf(ext.get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
 			File projectDir = project.getProjectDir().getAbsoluteFile();
+			Jar jarTask = (Jar) project.getTasks().getByName("jar");
 			Task buildTask = project.getTasks().getByName("build");
 			buildTask.doLast(task -> unpackOSGiManifest(projectDir, jarTask));
 		}

@@ -5,14 +5,20 @@ package nox.ext;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -33,6 +39,8 @@ class PlatformImpl implements Platform {
 	private static volatile File targetPlatformDir = null;
 
 	private static volatile File sdkDir = null;
+
+	private static volatile Map<String, String> bundleMapping = Maps.newConcurrentMap();
 
 	private final Project project;
 
@@ -118,6 +126,28 @@ class PlatformImpl implements Platform {
 			return p2Dir;
 		}
 		return new File(project.getBuildDir(), BUILD_P2);
+	}
+
+	@Override
+	public void setBundleMappingFile(File mappingFile) {
+		try (FileInputStream is = new FileInputStream(mappingFile)) {
+			Properties props = new Properties();
+			props.load(is);
+			bundleMapping.clear();
+			Enumeration<?> it = props.propertyNames();
+			while (it.hasMoreElements()) {
+				String fromName = String.valueOf(it.nextElement());
+				String toName = props.getProperty(fromName);
+				bundleMapping.put(fromName, toName);
+			}
+		} catch (IOException ex) {
+			throw new GradleException("Failed to load bundle mappings", ex);
+		}
+	}
+
+	@Override
+	public Map<String, String> bundleMapping() {
+		return Collections.unmodifiableMap(bundleMapping);
 	}
 
 	@Override

@@ -3,8 +3,18 @@
  */
 package nox.internal.bundle;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.Manifest;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -14,17 +24,10 @@ import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.WrapUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.Manifest;
-
 
 class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 
+	private final Collection<ModuleVersionIdentifier> bundleDependencies = Lists.newArrayList();
 	private String groupId = null;
 	protected String artifactId = null;
 	protected String version = null;
@@ -36,7 +39,6 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	private final List<String> optionals = Lists.newArrayList();
 	private File classesJarOrDir = null;
 	private FileCollection classpath = null;
-	private boolean replaceOSGiManifest = false;
 
 	OSGiManifestImpl(PathToFileResolver fileResolver) {
 		super(fileResolver);
@@ -47,9 +49,10 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 		ModuleVersionIdentifier moduleId = new DefaultModuleVersionIdentifier(groupId, artifactId, version);
 		try {
 			ManifestConverter converter = ManifestConverter.withModuleId(moduleId)
-			.withModuleDef(this)
+			.withRuleDefs(Lists.newArrayList(this))
 			.withClassesJarOrDir(classesJarOrDir)
 			.withClasspath(classpath.getFiles())
+			.withRequiredModules(bundleDependencies)
 			.instance();
 			DefaultManifest baseManifest = new DefaultManifest(null);
 			baseManifest.attributes(getAttributes());
@@ -59,7 +62,8 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 			for (Map.Entry<Object, Object> entry : attributes.entrySet()) {
 				baseManifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
 			}
-
+			// this changing value prevented incremental builds...
+			baseManifest.getAttributes().remove("Bnd-LastModified");
 			return getEffectiveManifestInternal(baseManifest);
 		} catch (IOException ex) {
 			throw new GradleException("OSGi manifest generation failed", ex);
@@ -169,6 +173,12 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	}
 
 	@Override
+	public OSGiManifest withBundleDependency(ModuleVersionIdentifier moduleId) {
+		bundleDependencies.add(moduleId);
+		return this;
+	}
+
+	@Override
 	public String toString() {
 		String res = groupId;
 		if (StringUtils.isNotBlank(artifactId)) {
@@ -178,15 +188,5 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 			res += ":" + version;
 		}
 		return res;
-	}
-
-	@Override
-	public void replaceOSGiManifest(boolean flag) {
-		this.replaceOSGiManifest = flag;
-	}
-
-	@Override
-	public boolean getReplaceOSGiManifest() {
-		return replaceOSGiManifest;
 	}
 }
