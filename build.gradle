@@ -65,3 +65,7 @@ artifacts {
 	archives sourcesJar
 	archives javadocJar
 }
+
+task wrapper(type: Wrapper) {
+	gradleVersion = "3.2.1"
+}
