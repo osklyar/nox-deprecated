@@ -159,8 +159,14 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 			analyzer.setClasspath(classpath);
 		}
 
-		try {
-			return analyzer.calcManifest();
+		try { //
+			Manifest res = analyzer.calcManifest();
+			String imports = res.getMainAttributes().getValue(Analyzer.IMPORT_PACKAGE);
+			if (StringUtils.isNotBlank(imports)) {
+				imports = imports.replace(";common=split", "");
+				res.getMainAttributes().putValue(Analyzer.IMPORT_PACKAGE, imports);
+			}
+			return res;
 		} catch (Exception ex) {
 			throw new IllegalStateException(ex);
 		}
