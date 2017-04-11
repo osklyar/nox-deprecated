@@ -9,6 +9,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.TaskAction;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -28,8 +29,8 @@ public class CleanBundles extends DefaultTask {
 	@TaskAction
 	public void action() {
 		try {
-			FileUtils.deleteDirectory(platform.getP2Dir());
-			FileUtils.deleteDirectory(getProject().getBuildDir());
+			FileUtils.deleteDirectory(new File(platform.getPlatformBuildDir(), "p2"));
+			FileUtils.deleteDirectory(new File(platform.getPlatformBuildDir(), Platform.PLUGINS_SUBDIR));
 
 		} catch (IOException ex) {
 			throw new GradleException("Failed to clean platform artifacts.", ex);

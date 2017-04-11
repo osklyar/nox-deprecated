@@ -3,16 +3,19 @@
  */
 package nox.tasks;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
-
+import groovy.lang.Closure;
+import nox.ext.Platform;
+import nox.internal.platform.Location;
+import nox.internal.platform.Repository;
+import nox.internal.platform.Target;
+import nox.internal.platform.Unit;
+import nox.internal.system.Arch;
+import nox.internal.system.OS;
+import nox.internal.system.Win;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
@@ -24,15 +27,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.util.ConfigureUtil;
 
-import groovy.lang.Closure;
-import nox.ext.Platform;
-import nox.internal.platform.Location;
-import nox.internal.platform.Repository;
-import nox.internal.platform.Target;
-import nox.internal.platform.Unit;
-import nox.internal.system.Arch;
-import nox.internal.system.OS;
-import nox.internal.system.Win;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Create extends DefaultTask {
@@ -47,12 +45,22 @@ public class Create extends DefaultTask {
 
 	@InputFile
 	public File getCreateConfigFile() {
-		return new File(getProject().getBuildDir(), createConfigFile);
+		File file = new File(platform.getPlatformBuildDir(), createConfigFile);
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException ex) {
+				throw new GradleException("Failed to create temporary file for eclipse repo configuration", ex);
+			}
+		}
+		return file;
 	}
 
 	@InputDirectory
 	public File getP2Dir() {
-		return platform.getP2Dir();
+		File file = new File(platform.getPlatformBuildDir(), "p2");
+		file.mkdir();
+		return file;
 	}
 
 	@OutputDirectory

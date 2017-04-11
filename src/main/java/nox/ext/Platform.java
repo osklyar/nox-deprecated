@@ -3,11 +3,11 @@
  */
 package nox.ext;
 
+import org.gradle.api.Project;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
-import org.gradle.api.Project;
 
 
 public interface Platform {
@@ -38,9 +38,9 @@ public interface Platform {
 
 	File getSdkExec();
 
-	void setP2Dir(File p2Dir);
+	void setPlatformBuildDir(File platformBuildDir);
 
-	File getP2Dir();
+	File getPlatformBuildDir();
 
 	void setBundleMappingFile(File mappingFile);
 

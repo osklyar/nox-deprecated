@@ -3,6 +3,16 @@
  */
 package nox.ext;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import nox.internal.system.OS;
+import org.gradle.api.GradleException;
+import org.gradle.api.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,22 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import nox.internal.system.OS;
-
 
 class PlatformImpl implements Platform {
-
-	private static final String BUILD_P2 = "p2";
 
 	private static final Logger logger = LoggerFactory.getLogger(PlatformImpl.class);
 
@@ -40,11 +36,11 @@ class PlatformImpl implements Platform {
 
 	private static volatile File sdkDir = null;
 
+	private static volatile File platformBuildDir = null;
+
 	private static volatile Map<String, String> bundleMapping = Maps.newConcurrentMap();
 
 	private final Project project;
-
-	private File p2Dir = null;
 
 	PlatformImpl(Project project) {
 		this.project = project;
@@ -116,16 +112,20 @@ class PlatformImpl implements Platform {
 	}
 
 	@Override
-	public void setP2Dir(File p2Dir) {
-		this.p2Dir = p2Dir;
+	public void setPlatformBuildDir(File value) {
+		if (platformBuildDir != null && !Objects.equal(platformBuildDir, value)) {
+			logger.warn("Plaform 'platformBuildDir' is already set to a different value");
+		}
+		platformBuildDir = value;
 	}
 
 	@Override
-	public File getP2Dir() {
-		if (p2Dir != null) {
-			return p2Dir;
+	public File getPlatformBuildDir() {
+		File res = platformBuildDir != null ? platformBuildDir : project.getRootProject().getBuildDir();
+		if (!res.exists()) {
+			res.mkdirs();
 		}
-		return new File(project.getBuildDir(), BUILD_P2);
+		return res;
 	}
 
 	@Override

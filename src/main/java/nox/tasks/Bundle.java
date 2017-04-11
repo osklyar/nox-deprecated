@@ -3,19 +3,19 @@
  */
 package nox.tasks;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Attributes.Name;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-
+import aQute.bnd.osgi.Analyzer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
+import nox.ext.Bundles;
+import nox.ext.Platform;
+import nox.internal.bundle.ArtifactResolver;
+import nox.internal.bundle.BundleDef;
+import nox.internal.bundle.Bundlizer;
+import nox.internal.bundle.ManifestConverter;
+import nox.internal.bundle.ResolvedArtifactExt;
+import nox.internal.bundle.RuleDef;
+import nox.internal.gradlize.BundleUniverse;
+import nox.internal.gradlize.Duplicates;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
@@ -30,17 +30,15 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import aQute.bnd.osgi.Analyzer;
-import nox.ext.Bundles;
-import nox.ext.Platform;
-import nox.internal.bundle.ArtifactResolver;
-import nox.internal.bundle.BundleDef;
-import nox.internal.bundle.Bundlizer;
-import nox.internal.bundle.ManifestConverter;
-import nox.internal.bundle.ResolvedArtifactExt;
-import nox.internal.bundle.RuleDef;
-import nox.internal.gradlize.BundleUniverse;
-import nox.internal.gradlize.Duplicates;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.Attributes.Name;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 
 public class Bundle extends DefaultTask {
@@ -57,12 +55,22 @@ public class Bundle extends DefaultTask {
 
 	@InputFile
 	public File getBundleConfigFile() {
-		return new File(getProject().getBuildDir(), Bundles.bundlesConfigFile);
+		File file = new File(platform.getPlatformBuildDir(), Bundles.bundlesConfigFile);
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException ex) {
+				throw new GradleException("Failed to create temporary file for bundles configuration", ex);
+			}
+		}
+		return file;
 	}
 
 	@OutputDirectory
 	public File getP2Dir() {
-		return platform.getP2Dir();
+		File file = new File(platform.getPlatformBuildDir(), "p2");
+		file.mkdir();
+		return file;
 	}
 
 	@OutputFiles
@@ -90,17 +98,16 @@ public class Bundle extends DefaultTask {
 	}
 
 	private void action() {
-		File pluginsDir = new File(getProject().getBuildDir(), Platform.PLUGINS_SUBDIR);
+		File pluginsDir = new File(platform.getPlatformBuildDir(), Platform.PLUGINS_SUBDIR);
+		File p2pluginsDir = new File(getP2Dir(), Platform.PLUGINS_SUBDIR);
 		try {
-			FileUtils.deleteDirectory(getP2Dir());
 			FileUtils.deleteDirectory(pluginsDir);
+			FileUtils.deleteDirectory(p2pluginsDir);
 		} catch (IOException ex) {
 			throw new GradleException("Failed to clean up earlier p2 repository.", ex);
 		}
 		pluginsDir.mkdirs();
-		if (!getP2Dir().mkdirs()) {
-			throw new GradleException(String.format("Failed to create plugins directory %s", pluginsDir));
-		}
+		p2pluginsDir.mkdirs();
 
 		ArtifactResolver resolver = ArtifactResolver.withDependencyHelper(
 			getProject().getDependencies())
@@ -179,7 +186,7 @@ public class Bundle extends DefaultTask {
 
 		try {
 			String repopath = "file://" + getP2Dir().getAbsolutePath();
-			String buildpath = getProject().getBuildDir().getAbsolutePath();
+			String buildpath = platform.getPlatformBuildDir().getAbsolutePath();
 			if (0 != platform.execEclipseApp(
 				"org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher", "-metadataRepository",
 				repopath, "-artifactRepository", repopath, "-source", buildpath, "-configs", "ANY",
@@ -188,7 +195,7 @@ public class Bundle extends DefaultTask {
 			}
 
 			// print dependencies that cannot be resolved
-			new UniverseAnalyzer(new File(getP2Dir(), Platform.PLUGINS_SUBDIR)).analyze(
+			new UniverseAnalyzer(p2pluginsDir).analyze(
 				BundleUniverse.instance(Duplicates.Overwrite));
 		} catch (IOException ex) {
 			throw new GradleException("Failed to assemble target platform", ex);
