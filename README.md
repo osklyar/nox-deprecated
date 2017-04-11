@@ -83,6 +83,19 @@ It makes sense to configure the actual location via a variable specified in the 
 `gradle.properties` files. The plugins will check that the platform location or the root location
 is specified providing no defaults.
 
+Further to the `targetPlatformDir` it is also possible to configure the platform build directory. By
+default it is the build directory of the project where the plugin is applied. However, this directory
+is removed when a `clean` taks is run, e.g. for Java build artifacts. To separate this behaviour and
+to keep the incremental nature of the platform generation, one build bundles, write temporary 
+inputs and generate the P2 repository elsewhere:
+
+```
+platform {
+  targetPlatformDir = file("/home/user/e46")
+  platformBuildDir = file("/home/user/e46/build")
+}
+```
+
 ## Compiling against the _target platform_ 
 
 Building OSGi applications is akin to building against an application server, such as JBoss, with 
@@ -237,6 +250,7 @@ apply plugin: nox.Platform
 
 platform {
   root = file("/home/user/platform-root")
+  bundleMappingFile = file("platform/bundlemapping.properties")
 }
 
 getsdk {
@@ -273,20 +287,23 @@ bundles {
 }
 
 create {
-	location "http://builds.gradle.org:8000/eclipse/update-site/mirror/release-neon/", {
+	location "http://download.eclipse.org/eclipse/updates/4.6/", {
 		unit "org.eclipse.sdk.ide", "4.6.0.I20160606-1100"
 		unit "javax.servlet_3.1.0.v201410161800.jar"
 	}
-	location "http://builds.gradle.org:8000/eclipse/update-site/mirror/orbit-neon/", {
+	location "http://download.eclipse.org/tools/orbit/downloads/drops/R20150821153341/repository/", {
 		unit "org.apache.commons.lang3", "3.1.0.v201403281430"
 		unit "com.google.guava_15.0.0.v201403281430.jar"
 	}
 }
 ```
 
-Let's go through the example line by line analysing what it does and why. First, we import the
-`nox.Platform` plugin and define the location for our target platform (and the downloaded) 
-Eclipse SDK.
+Let's go through the example line by line analysing what it does and why. 
+
+First, we import the `nox.Platform` plugin and define the location for our target platform 
+(and the downloaded) Eclipse SDK. Here we also specify the (optional) file to map bundle names
+used as gradle bundle dependencies to actual names of bundles in the platform. This way one can 
+use a platform with somewhat deviating bundle names while keeping all the build scripts constant.
 
 Then, we define the SDK version to download within the `getsdk` task. If no version is specified 
 (or the section is missing) the 4.6.2 will be used. Currently supported are 4.6, 4.6.2 and 4.7M5.
@@ -297,12 +314,13 @@ want to generate in the next step. Here it is `jcenter`, but can be any other on
 Then, we define all the bundles we want to integrate into the target platform from maven repositories
 or local files. We will discuss this section in a bit more detail below.
 
-// FIXME: missing
 Finally, we describe the target platform to create and specify all bundles we want to download from
 remote p2 repositories.
 
 That is it. Now run `./gradlew getsdk bundle create ivynize`, or just `./gradlew ivynize` because
 of task transitive dependencies on each other, to generate your target platform.
+
+For a more comprehensive example see the `example` directory.
 
 
 ### Configuring the `bundles`

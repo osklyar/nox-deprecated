@@ -1,0 +1,448 @@
+ext {
+	// version definitions for multiple bundles from the same group
+	activemqVersion="5.+"
+	aspectjVersion="1.8.+"
+	jacksonVersion="2.8.+"
+	geminiVersion="2.0.0.RELEASE"
+	hibernateVersion="5.2.5.+"
+	nettyVersion="4.1.+"
+	reactorioVersion="2.0.+"
+	springVersion="4.3.+"
+}
+
+bundles {
+	rule {
+		optionals "sun.misc.*"
+	}
+
+	rule "dom4j", {
+		optionals "org.gjt.xpp.*"
+	}
+	rule "isorelax", {
+		version "1.0.0"
+		optionals "jp.co.swiftinc.relax.*"
+	}
+	rule "net.openhft", {
+		optionals "sun.nio.ch.*"
+	}
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  apache commons
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	
+	bundle "commons-beanutils", "commons-beanutils", "1.+", {
+		symbolicName "org.apache.commons.beanutils"
+	}
+	bundle "commons-codec", "commons-codec", "1.+", {
+		symbolicName "org.apache.commons.codec"
+	}
+	bundle "commons-fileupload", "commons-fileupload", "1.+", {
+		symbolicName "org.apache.commons.fileupload"
+	}
+	bundle "commons-lang", "commons-lang", "2.6", {
+		symbolicName "org.apache.commons.lang"
+	}
+	bundle "org.apache.commons", "commons-lang3", "3.+", {
+		symbolicName "org.apache.commons.lang3"
+	}
+	bundle "commons-io", "commons-io", "2.+", {
+		symbolicName "org.apache.commons.io"
+	}
+	bundle "org.apache.ant", "ant", "1.9.+"
+	bundle "org.apache.commons", "commons-compress", "1.+", {
+		symbolicName "org.apache.commons.compress"
+	}
+	bundle "org.apache.commons", "commons-csv", "1.+", {
+		symbolicName "org.apache.commons.csv"
+	}
+	bundle "commons-pool", "commons-pool", "1.+", {
+		symbolicName "org.apache.commons.pool"
+	}
+	bundle "org.apache.commons", "commons-pool2", "2.+", {
+		symbolicName "org.apache.commons.pool2"
+	}
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  javax
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	bundle "javax.enterprise.concurrent", "javax.enterprise.concurrent-api", "1.+", {
+		symbolicName "javax.enterprise.concurrent.api"
+	}
+	bundle "javax.interceptor", "javax.interceptor-api", "1.2", {
+		symbolicName "javax.enterprise.interceptor.api"
+	}
+	bundle "javax.portlet", "portlet-api", "3.0.+", {
+		symbolicName "javax.portlet.api"
+	}
+	bundle "javax.servlet.jsp.jstl", "jstl-api", "1.2", {
+		symbolicName "javax.servlet.jsp.jstl"
+	}
+	bundle "org.glassfish", "javax.faces", "2.3.+", {
+		symbolicName "javax.faces"
+	}
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  XML, JSON etc.
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	bundle "jaxen", "jaxen", "1.1.6", {
+		symbolicName "org.jaxen"
+	}
+	bundle "xmlpull", "xmlpull", "1.1.3.1"
+	bundle "com.bea.xml", "jsr173-ri", "1.0"
+	bundle "com.jayway.jsonpath", "json-path", "2.2.0", {
+		symbolicName "com.jayway.jsonpath"
+	}
+	bundle "com.fasterxml", "aalto-xml", "1.0.0", {
+		symbolicName "com.fasterxml.aalto.xml"
+	}
+	bundle "com.fasterxml", "classmate", "1.3.+"
+	bundle "com.fasterxml.jackson.core", "jackson-databind", jacksonVersion, {
+		replaceOSGiManifest true
+	}
+	bundle "com.fasterxml.jackson.core", "jackson-core", jacksonVersion, {
+		symbolicName "com.fasterxml.jackson.core"
+		replaceOSGiManifest true
+	}
+	bundle "com.fasterxml.jackson.core", "jackson-annotations", jacksonVersion, {
+		symbolicName "com.fasterxml.jackson.annotations"
+		replaceOSGiManifest true
+	}
+	bundle "com.fasterxml.jackson.dataformat", "jackson-dataformat-xml", jacksonVersion, {
+		symbolicName "com.fasterxml.jackson.dataformat.xml"
+		replaceOSGiManifest true
+	}
+	bundle "com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", jacksonVersion, {
+		symbolicName "com.fasterxml.jackson.dataformat.yaml"
+		replaceOSGiManifest true
+	}
+	bundle "com.fasterxml.jackson.dataformat", "jackson-dataformat-smile", jacksonVersion, {
+		symbolicName "com.fasterxml.jackson.dataformat.smile"
+		replaceOSGiManifest true
+	}
+	bundle "com.fasterxml.jackson.dataformat", "jackson-dataformat-csv", jacksonVersion, {
+		symbolicName "com.fasterxml.jackson.dataformat.csv"
+		replaceOSGiManifest true
+	}
+	bundle "com.google.dexmaker", "dexmaker", "1.+"
+	bundle "com.google.code.gson", "gson", "2.8.+"
+	bundle "com.sun.msv.datatype.xsd", "xsdlib", "2013.2", {
+		symbolicName "com.sun.msv.datatype.xsd"
+		version "1.0.0"
+	}
+	bundle "com.thoughtworks.xstream", "xstream", "1.4.9", {
+		replaceOSGiManifest true
+		optionals "com.bea.xml.stream.*", "nu.xom.*", "org.jdom.*",
+				"org.codehaus.jettison.*", "org.kxml2.io.*"
+	}
+	bundle "org.apache.tapestry", "tapestry-json", "5.4.+", {
+		symbolicName "org.apache.tapestry.json"
+	}
+	bundle "org.apache.tapestry", "tapestry-ioc", "5.4.+", {
+		symbolicName "org.apache.tapestry.ioc"
+	}
+	bundle "org.apache.xerces", "com.springsource.org.apache.xerces", "2.8.1", {
+		replaceOSGiManifest true
+		symbolicName "com.springsource.org.apache.xerces"
+		optionals "sun.io.*"
+	}
+	bundle "org.apache.xmlbeans", "xmlbeans", "2.+", {
+		optionals "com.sun.*", "org.apache.crimson.*"
+	}
+	bundle "org.apache.xmlcommons", "com.springsource.org.apache.xmlcommons", "1.3.3", {
+		replaceOSGiManifest true
+		symbolicName "com.springsource.org.apache.xmlcommons"
+	}
+	bundle "org.codehaus.woodstox", "stax2-api", "4.+", {
+		symbolicName "org.codehaus.stax2"
+	}
+	bundle "org.codehaus.castor", "com.springsource.org.exolab.castor.xml", "1.2.0"
+	bundle "taglibs", "standard", "1.+", {
+		symbolicName "org.apache.taglibs"
+		optionals "org.apache.xalan.*", "org.apache.xml.utils.*", "org.apache.xpath.*"
+	}
+	bundle "org.jibx", "jibx-run", "1.3.1", {
+		symbolicName "org.jibx.runtime"
+	}
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  middleware
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	bundle "io.netty", "netty-common", nettyVersion
+	bundle "io.netty", "netty-buffer", nettyVersion
+	bundle "io.netty", "netty-transport", nettyVersion
+	bundle "io.netty", "netty-codec", nettyVersion
+	bundle "io.netty", "netty-codec-http", nettyVersion
+	bundle "io.netty", "netty-handler", nettyVersion
+	bundle "io.netty", "netty-transport-native-epoll", nettyVersion
+	bundle "io.projectreactor", "reactor-core", reactorioVersion, {
+		symbolicName "reactor.core"
+		replaceOSGiManifest true
+	}
+	bundle "io.projectreactor", "reactor-bus", reactorioVersion, {
+		symbolicName "reactor.bus"
+		replaceOSGiManifest true
+	}
+	bundle "io.projectreactor", "reactor-net", reactorioVersion, {
+		symbolicName "reactor.net"
+		replaceOSGiManifest true
+		optionals "org.zeromq.*"
+	}
+	bundle "io.projectreactor", "reactor-stream", reactorioVersion, {
+		symbolicName "reactor.stream"
+		replaceOSGiManifest true
+	}
+	bundle "org.eclipse.gemini.blueprint", "gemini-blueprint-core", geminiVersion, {
+		symbolicName "org.eclipse.gemini.blueprint.core"
+	}
+	bundle "org.eclipse.gemini.blueprint", "gemini-blueprint-io", geminiVersion, {
+		symbolicName "org.eclipse.gemini.blueprint.io"
+	}
+	bundle "org.eclipse.gemini.blueprint", "gemini-blueprint-extender", geminiVersion, {
+		symbolicName "org.eclipse.gemini.blueprint.extender"
+	}
+	bundle "org.jboss.modules", "jboss-modules", "1.5.+", {
+		symbolicName "org.jboss.modules"
+	}
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  protocol, communication, storage
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	bundle "com.hazelcast", "hazelcast", "3.+"
+	bundle "com.google.protobuf", "protobuf-java", "3.2.+", {
+		symbolicName "com.google.protobuf"
+		replaceOSGiManifest true
+	}
+	bundle "com.googlecode.protobuf-java-format", "protobuf-java-format", "1.4", {
+		symbolicName "com.googlecode.protobuf.format"
+	}
+	bundle "com.squareup.okhttp", "okhttp", "2.7.+", {
+			optionals "android.util.*"
+	}
+	bundle "com.squareup.okhttp3", "okhttp", "3.6.+", {
+			optionals "android.util.*"
+	}
+	bundle "org.apache.activemq", "activemq-client", activemqVersion, {
+		symbolicName "org.apache.activemq.client"
+	}
+	bundle "org.apache.activemq", "activemq-broker", activemqVersion, {
+		symbolicName "org.apache.activemq.broker"
+	}
+	bundle "org.apache.activemq", "activemq-jaas", activemqVersion, {
+		symbolicName "org.apache.activemq.jaas"
+	}
+	bundle "org.apache.derby", "derby", "10.+"
+	bundle "org.apache.httpcomponents", "httpcore", "4.+", {
+		symbolicName "org.apache.httpcore"
+	}
+	bundle "org.apache.httpcomponents", "httpcore-nio", "4.+", {
+		symbolicName "org.apache.httpcore.nio"
+	}
+	bundle "org.apache.httpcomponents", "httpclient", "4.+", {
+		symbolicName "org.apache.httpclient"
+		optionals "org.ietf.jgss"
+	}
+	bundle "org.apache.httpcomponents", "httpasyncclient", "4.+", {
+		symbolicName "org.apache.httpasyncclient"
+	}
+	rule "org.hibernate.common", "hibernate-commons-annotations", {
+		symbolicName "org.hibernate.annotations"
+	}
+	bundle "org.hibernate", "hibernate-core", hibernateVersion, {
+		symbolicName "org.hibernate.core"
+	}
+	bundle "org.hibernate", "hibernate-validator", hibernateVersion, {
+		symbolicName "org.hibernate.validator"
+	}
+	bundle "org.hibernate", "hibernate-jpamodelgen", hibernateVersion, {
+		symbolicName "org.hibernate.jpamodelgen"
+	}
+	bundle "org.hibernate", "hibernate-osgi", hibernateVersion, {
+		symbolicName "org.hibernate.osgi"
+	}
+	rule "org.springframework", {
+		optionals "org.omg.CORBA.*", "com.sun.*", "javax.ejb.*", "com.ibm.wsspi.*"
+		optionals "javax.money.*", "com.jamonapi.*", "joptsimple.*", "org.jruby.*"
+		optionals "org.hibernate.*"
+	}
+	bundle "org.springframework", "spring-aop", springVersion, {
+		symbolicName "org.springframework.aop"
+	}
+	bundle "org.springframework", "spring-beans", springVersion, {
+		symbolicName "org.springframework.beans"
+	}
+	bundle "org.springframework", "spring-web", springVersion, {
+		symbolicName "org.springframework.web"
+	}
+	bundle "org.springframework", "spring-context", springVersion, {
+		symbolicName "org.springframework.context"
+	}
+	bundle "org.springframework", "spring-core", springVersion, {
+		symbolicName "org.springframework.core"
+	}
+	bundle "org.springframework", "spring-expression", springVersion, {
+		symbolicName "org.springframework.expression"
+	}
+	bundle "org.springframework", "spring-instrument", springVersion, {
+		symbolicName "org.springframework.instrument"
+	}
+	bundle "org.springframework", "spring-messaging", springVersion, {
+		symbolicName "org.springframework.messaging"
+	}
+	bundle "org.springframework", "spring-jdbc", springVersion, {
+		symbolicName "org.springframework.jdbc"
+	}
+	bundle "org.springframework", "spring-jms", springVersion, {
+		symbolicName "org.springframework.jms"
+	}
+	bundle "org.springframework", "spring-test", springVersion, {
+		symbolicName "org.springframework.test"
+		optionals "com.gargoylesoftware.htmlunit.*", "org.testng.*", "org.openqa.selenium.*",
+				"org.custommonkey.xmlunit.*", "com.jayway.jsonpath.*",
+				"org.springframework.web.*", "org.skyscreamer.jsonassert.*"
+	}
+	bundle "org.springframework", "spring-oxm", springVersion, {
+		symbolicName "org.springframework.oxm"
+		optionals "com.thoughtworks.xstream.core.util"
+	}
+	bundle "org.springframework", "spring-tx", springVersion, {
+		symbolicName "org.springframework.tx"
+	}
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  logging
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	bundle "commons-logging", "commons-logging", "1.+", {
+		symbolicName "org.apache.commons.logging"
+		optionals "org.apache.avalon.framework.*", "org.apache.log.*"
+	}
+	bundle "log4j", "log4j", "1.+", {
+		symbolicName "org.apache.log4j"
+	}
+	bundle "org.apache.logging.log4j", "log4j-core", "2.+", {
+		symbolicName "org.apache.log4j-v2"
+	}
+	bundle "ch.qos.logback", "logback-core", "1.2.3", {
+		symbolicName "ch.qos.logback.core"
+	}
+	bundle "ch.qos.logback", "logback-classic", "1.2.3", {
+		symbolicName "ch.qos.logback.classic"
+	}
+	bundle "ch.qos.cal10n", "cal10n-api", "0.8.1"
+	bundle "ch.qos.cal10n", "cal10n-site", "0.8.1"
+	bundle "org.jboss.logmanager", "jboss-logmanager", "2.+", {
+		symbolicName "org.jboss.logmanager"
+		replaceOSGiManifest true
+	}
+	bundle "org.slf4j", "slf4j-api", "1.7.+", {
+		symbolicName "org.slf4j.api"
+	}
+	bundle "org.slf4j", "slf4j-ext", "1.7.+", {
+		replaceOSGiManifest true
+		symbolicName "org.slf4j.ext"
+		optionals "ch.qos.cal10n.*"
+	}
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  visualization
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+	bundle "org.jfree", "jfreechart", "1.+"
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  testing
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	bundle "junit", "junit", "4.12"
+	bundle "org.easymock", "easymock", "3.+", {
+		replaceOSGiManifest true
+		optionals "org.easymock.asm.*"
+	}
+	bundle "org.easymock", "com.springsource.org.easymock.classextension", "2.5.2", {
+		symbolicName "org.easymock.classextension"
+	}
+	bundle "org.mockito", "mockito-core", "2.7.+", {
+		replaceOSGiManifest true
+		symbolicName "org.mockito"
+		optionals "org.newsclub.net.*"
+	}
+
+
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	//  aux
+	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	
+	bundle "bsh", "bsh", "1.3.0", {
+		optionals "org.apache.bsf.*"
+	}
+	bundle "c3p0", "c3p0", "0.9.1.2"
+	bundle "cglib", "cglib-nodep", "3.2.5", {
+		symbolicName "cglib"
+	}
+	bundle "joda-time", "joda-time", "2.9.+"
+	bundle "msv", "msv", "20050913", {
+		symbolicName "com.sun.msv"
+		version "1.0.0"
+	}
+	bundle "msv", "relaxngDatatype", "20050913", {
+		symbolicName "org.relaxng.datatype"
+		version "1.0.0"
+	}
+	bundle "com.caucho", "burlap", "2.1.+"
+	bundle "com.caucho", "hessian", "4.0.+"
+	bundle "com.esotericsoftware", "kryo", "3.+"
+	bundle "com.google.guava", "guava", "21.+"
+	bundle "com.rometools", "rome", "1.7.1"
+	bundle "com.sun.msv", "com.springsource.com.sun.msv.datatype", "0.0.0.20060615", {
+		symbolicName "com.sun.msv.datatype"
+		version "1.0.0"
+	}
+	bundle "com.typesafe", "config", "1.3.1"
+	rule "net.bytebuddy", {
+		optionals "org.newsclub.net.*", "net.bytebuddy.jar.asm.*"
+	}
+	bundle "net.bytebuddy", "byte-buddy-dep", "1.6.+", {
+		symbolicName "net.bytebuddy"
+	}
+	bundle "net.jcip", "jcip-annotations", "1.0", {
+		symbolicName "net.jcip.annotations"
+	}
+	bundle "net.openhft", "chronicle", "3.6.4", {
+		replaceOSGiManifest true
+	}
+	bundle "net.openhft", "lang", "6.8.+", {
+		replaceOSGiManifest true
+	}
+	bundle "org.antlr", "stringtemplate", "4.0.+"
+	bundle "org.ow2.asm", "asm", "5.+"
+	bundle "org.aspectj", "aspectjrt", aspectjVersion, {
+		symbolicName "org.aspectj.runtime"
+	}
+	bundle "org.aspectj", "aspectjtools", aspectjVersion, {
+		optionals "com.bea.jvm", "org.apache.felix.*", "com.sun.*"
+	}
+	bundle "org.aspectj", "aspectjweaver", aspectjVersion, {
+		optionals "com.bea.jvm"
+	}
+	bundle "org.codehaus.groovy", "groovy", "2.4.+"
+	bundle "org.fusesource.jansi", "jansi", "1.+"
+	bundle "org.javassist", "javassist", "3.20.+", {
+		optionals "com.sun.*"
+	}
+	bundle "org.jasypt", "jasypt", "1.9.2"
+	bundle "jgroups", "jgroups", "2.9.0.GA", {
+		optionals "org.testng.*", "org.bouncycastle.jce.provider.*"
+	}
+
+}

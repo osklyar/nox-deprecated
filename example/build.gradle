@@ -1,0 +1,36 @@
+buildscript {
+  repositories {
+		jcenter()
+  }
+  dependencies {
+		classpath "com.silvertern.gradle:nox:0.3.1"
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = "3.2.1"
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// platform definition
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+apply plugin: nox.Platform
+
+platform {
+	root = file("platform/TP")
+	platformBuildDir = file("platform/TP/build")
+	bundleMappingFile = file("platform/bundlemapping.properties")
+}
+
+getsdk {
+	version = "4.7M5"
+}
+
+repositories {
+	// for converting maven artifacts to bundles
+	jcenter()
+}
+
+apply from: "platform/bundles.gradle"
+apply from: "platform/create.gradle"
