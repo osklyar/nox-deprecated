@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -154,12 +155,19 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		analyzer.setBundleSymbolicName(bundleSymbolicName);
 		analyzer.setBundleVersion(bundleVersion.toString(Component.Build));
 
-		analyzer.setJar(classesJarOrDir);
+		File classesJarOrDirToUse = classesJarOrDir;
+		if (classesJarOrDirToUse == null) {
+			classesJarOrDirToUse = File.createTempFile("osgi", UUID.randomUUID().toString());
+			classesJarOrDirToUse.delete();
+			classesJarOrDirToUse.mkdir();
+			classesJarOrDirToUse.deleteOnExit();
+		}
+		analyzer.setJar(classesJarOrDirToUse);
 		if (!classpath.isEmpty()) {
 			analyzer.setClasspath(classpath);
 		}
 
-		try { //
+		try {
 			Manifest res = analyzer.calcManifest();
 			String imports = res.getMainAttributes().getValue(Analyzer.IMPORT_PACKAGE);
 			if (StringUtils.isNotBlank(imports)) {

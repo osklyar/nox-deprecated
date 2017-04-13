@@ -48,9 +48,11 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	public DefaultManifest getEffectiveManifest() {
 		ModuleVersionIdentifier moduleId = new DefaultModuleVersionIdentifier(groupId, artifactId, version);
 		try {
+			File classesDirToUse =
+				classesJarOrDir != null && classesJarOrDir.exists() ? classesJarOrDir : null;
 			ManifestConverter converter = ManifestConverter.withModuleId(moduleId)
 			.withRuleDefs(Lists.newArrayList(this))
-			.withClassesJarOrDir(classesJarOrDir)
+			.withClassesJarOrDir(classesDirToUse)
 			.withClasspath(classpath.getFiles())
 			.withRequiredModules(bundleDependencies)
 			.instance();
