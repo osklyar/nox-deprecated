@@ -11,6 +11,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
 import org.gradle.api.internal.artifacts.repositories.layout.DefaultIvyPatternRepositoryLayout;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -48,16 +49,21 @@ public class Java implements Plugin<Project> {
 		extProps.set("p2arch", Arch.current().toString());
 
 		Platform platform = project.getExtensions().findByType(Platform.class);
-		repositories.ivy(repo -> {
+		IvyArtifactRepository repository = repositories.ivy(repo -> {
 			repo.setName("plugins");
 			repo.setUrl(platform.getTargetPlatformDir());
 			repo.layout("pattern", layout -> {
 				DefaultIvyPatternRepositoryLayout ivyLayout = (DefaultIvyPatternRepositoryLayout) layout;
-				ivyLayout.artifact(String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.PLUGINS_SUBDIR));
-				ivyLayout.artifact(String.format("%s/[module](.[classifier])_[revision]", Platform.PLUGINS_SUBDIR));
-				ivyLayout.ivy(String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.IVY_SUBDIR));
+				ivyLayout.artifact(
+					String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.PLUGINS_SUBDIR));
+				ivyLayout.artifact(
+					String.format("%s/[module](.[classifier])_[revision]", Platform.PLUGINS_SUBDIR));
+				ivyLayout.ivy(
+					String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.IVY_SUBDIR));
 			});
 		});
+		repositories.remove(repository);
+		repositories.addFirst(repository);
 	}
 
 	private static class PluginDep extends Closure<ClientModule> {
