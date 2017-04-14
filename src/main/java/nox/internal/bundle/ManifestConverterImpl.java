@@ -109,7 +109,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		if (alreadyOSGi && !replaceOSGimanifest) {
 			Attributes attrs = manifest.getMainAttributes();
 			attrs.putValue(Analyzer.BUNDLE_SYMBOLICNAME, bundleSymbolicName);
-			attrs.putValue(Analyzer.BUNDLE_VERSION, bundleVersion.toString(Component.Build));
+			attrs.putValue(Analyzer.BUNDLE_VERSION, bundleVersion.toString());
 			if (!requiredBundles.isEmpty()) {
 				attrs.putValue(Analyzer.REQUIRE_BUNDLE, StringUtils.join(requiredBundles, ","));
 			}
@@ -127,6 +127,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 
 		set(analyzer, Analyzer.REQUIRE_BUNDLE, StringUtils.join(requiredBundles, ","));
 
+		boolean isSingleton = false;
 		for (RuleDef ruleDef : ruleDefs) {
 			if (manifestUtil.isRelevant(ruleDef, moduleId)) {
 				for (String instruction: ruleDef.getInstructions().keySet()) {
@@ -138,6 +139,9 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 					}
 					set(analyzer, instruction, ruleDef.getInstructions().get(instruction));
 				}
+				for (String importPackage : ruleDef.getImports()) {
+					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage + ";resolution:=optional");
+				}
 				for (String importPackage : ruleDef.getOptionals()) {
 					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage + ";resolution:=optional");
 				}
@@ -147,13 +151,19 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 				for (String privatePackage : ruleDef.getPrivates()) {
 					set(analyzer, Analyzer.EXPORT_PACKAGE, "!" + privatePackage);
 				}
+				if (StringUtils.isNotBlank(ruleDef.getActivator())) {
+					set(analyzer, Analyzer.BUNDLE_ACTIVATOR, ruleDef.getActivator());
+				}
+				if (ruleDef.getSingleton()) {
+					isSingleton = true;
+				}
 			}
 		}
 		set(analyzer, Analyzer.IMPORT_PACKAGE, "*");
 		set(analyzer, Analyzer.EXPORT_PACKAGE, "*;-noimport:=true;version=" + bundleVersion.toString(Component.Build));
 
-		analyzer.setBundleSymbolicName(bundleSymbolicName);
-		analyzer.setBundleVersion(bundleVersion.toString(Component.Build));
+		analyzer.setBundleSymbolicName(bundleSymbolicName + (isSingleton ? ";singleton:=true" : ""));
+		analyzer.setBundleVersion(bundleVersion.toString());
 
 		File classesJarOrDirToUse = classesJarOrDir;
 		if (classesJarOrDirToUse == null) {

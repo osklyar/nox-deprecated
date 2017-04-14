@@ -23,6 +23,9 @@ public abstract class AbstractDefImpl implements RuleDef {
 	protected final List<String> exports = Lists.newArrayList();
 	protected final List<String> privates = Lists.newArrayList();
 	protected final List<String> optionals = Lists.newArrayList();
+	protected final List<String> imports = Lists.newArrayList();
+	protected boolean singleton = false;
+	protected String activator = null;
 
 	@Override
 	public void groupId(String groupId) {
@@ -75,8 +78,10 @@ public abstract class AbstractDefImpl implements RuleDef {
 	}
 
 	@Override
-	public void instruction(String instruction, String value) {
-		instructions.put(instruction, value);
+	public void instruction(String instruction, String... value) {
+		String current = instructions.get(instruction);
+		String incoming = StringUtils.join(value, ",");
+		instructions.put(instruction, StringUtils.isNotBlank(current) ? (current + ",") : "" + incoming);
 	}
 
 	@Override
@@ -112,6 +117,36 @@ public abstract class AbstractDefImpl implements RuleDef {
 	@Override
 	public List<String> getOptionals() {
 		return Collections.unmodifiableList(optionals);
+	}
+
+	@Override
+	public void imports(String... pkgNames) {
+		imports.addAll(Lists.newArrayList(pkgNames));
+	}
+
+	@Override
+	public List<String> getImports() {
+		return Collections.unmodifiableList(imports);
+	}
+
+	@Override
+	public void activator(String activator) {
+		this.activator = activator;
+	}
+
+	@Override
+	public String getActivator() {
+		return activator;
+	}
+
+	@Override
+	public void singleton(boolean singleton) {
+		this.singleton = singleton;
+	}
+
+	@Override
+	public boolean getSingleton() {
+		return singleton;
 	}
 
 	@Override

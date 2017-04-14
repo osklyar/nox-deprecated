@@ -47,7 +47,7 @@ public interface RuleDef {
 
 	String getSymbolicName();
 
-	void instruction(String instruction, String value);
+	void instruction(String instruction, String... value);
 
 	LinkedHashMap<String, String> getInstructions();
 
@@ -62,4 +62,17 @@ public interface RuleDef {
 	void optionals(String... pkgNames);
 
 	List<String> getOptionals();
+
+	void imports(String... pkgNames);
+
+	List<String> getImports();
+
+	void activator(String activator);
+
+	String getActivator();
+
+	void singleton(boolean singleton);
+
+	boolean getSingleton();
+
 }

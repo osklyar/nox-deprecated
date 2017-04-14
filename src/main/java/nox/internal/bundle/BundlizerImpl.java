@@ -3,14 +3,6 @@
  */
 package nox.internal.bundle;
 
-import aQute.bnd.osgi.Analyzer;
-import com.google.common.collect.Maps;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,6 +14,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
+
+import com.google.common.collect.Maps;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import aQute.bnd.osgi.Analyzer;
 
 
 class BundlizerImpl implements Bundlizer {
@@ -41,7 +43,7 @@ class BundlizerImpl implements Bundlizer {
 
 	@Override
 	public File bundleJar(File originalJar, Manifest manifest, String classifier) throws IOException {
-		String symbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+		String symbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName").replaceAll(";singleton:=true", "");
 		String version = manifest.getMainAttributes().getValue("Bundle-Version");
 		File targetFile;
 		if (StringUtils.isNotBlank(classifier)) {
