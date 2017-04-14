@@ -175,9 +175,12 @@ The API is defined by the underlying `ModuleDef` (all values optional, but can b
 * `string artifactId`, implicitly set from the project name
 * `string version`, implicitly set from the 'version' property of the project
 * `string symbolicName`, implicitly calculated from the groupId and artifactId
-* `instruction(string instruction, string value)`, adds an arbitrary instruction except 
-  for `Bundle-SymbolicName` and `Bundle-Version`
-* `exports(string... pkgNames)`, adds export directives to the analyzer (normally not needed)
+* `boolean singleton`, adds the singleton specifier to the resulting symbolic name
+* `activator(string activator)`, adds the bundle activator entry
+* `instruction(string instruction, string... values)`, adds arbitrary instructions except 
+  for `Bundle-SymbolicName` and `Bundle-Version` (use `symbolidName` and `version` instead)
+* `imports(string... pkgNames)`, adds package import directives to the analyzer (normally not needed)
+* `exports(string... pkgNames)`, adds package export directives to the analyzer (normally not needed)
 * `privates(string... pkgNames)`, marks export packages as private excluding them from exports
 * `optionals(string... pkgNames)`, marks import packages as optional omitting those during dependency 
   resolution when not present
@@ -262,8 +265,6 @@ repositories {
 }
 
 bundles {
-  withSources false
-
   rule "org.springframework", {
     optionals "org.jruby.*", "org.xml.*"
   }
@@ -332,13 +333,14 @@ simple:
 
 * `bundle "group", "artifact", "version pattern" [, {configuration closure}]`, to specify a bundle 
   to import and rules to generate it within the configuration closure
-* `rule "group"[, "artifact"[, "version"]], {configuration closure}`, to specify a rule that
+* `rule ["group"[, "artifact"[, "version"]]], {configuration closure}`, to specify a rule that
   applies to all the artifacts matching the group and optionally the name and version within a 
   given scope. The rule can be applied at the top level, in which case it will apply to all bundles
   and their dependencies, or within a `bundle` clause, in which case it will apply only to the 
   dependencies of that bundle. Each `bundle` clause is a rule itself applied to that bundle only.
-* `boolean withSources`, default true, to specify if source jar need to be included into the 
-  target platform.
+  A rule defined without any pattern (that is no group, no artifact etc.) represents a global
+  rule applied to all bundles. Here one can turn some platform dependencies optional, such as
+  `sun.misc.*` or turn off bundle qualifier generation, `	withQualifier false`.
   
 The `rule` and `bundle` take all the same directives as the manifest of the `nox.OSGi`plugin above 
 with the following differences:
@@ -353,9 +355,16 @@ to specify the "next available". In the `rule` directive these attributes consti
 check if the rule applies to the artifact or not. Therefore, only the group is required for the `rule`
 directive.
 
+Additionally the `bundle` directive can take the `boolean replaceOSGiManifest` value to indicate that
+a manifest of a bundle that is already OSGi compliant should be fully regenerated.
+
+Every bundle definition is also a global rule matching the same pattern. Further, if there is 
+a bundle definition for a transitive dependency, the dependency will be introduced with the bundle
+definition following the rules in that definition.
+
+
 Let's now go through the `bundles` section of the above example in detail:
 
-`withSources false` turns of collection of source jars for all bundles.
 
 ```
 rule "org.springframework", {

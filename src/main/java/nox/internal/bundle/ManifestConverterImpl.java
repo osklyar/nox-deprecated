@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -108,7 +109,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		if (alreadyOSGi && !replaceOSGimanifest) {
 			Attributes attrs = manifest.getMainAttributes();
 			attrs.putValue(Analyzer.BUNDLE_SYMBOLICNAME, bundleSymbolicName);
-			attrs.putValue(Analyzer.BUNDLE_VERSION, bundleVersion.toString(Component.Build));
+			attrs.putValue(Analyzer.BUNDLE_VERSION, bundleVersion.toString());
 			if (!requiredBundles.isEmpty()) {
 				attrs.putValue(Analyzer.REQUIRE_BUNDLE, StringUtils.join(requiredBundles, ","));
 			}
@@ -126,6 +127,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 
 		set(analyzer, Analyzer.REQUIRE_BUNDLE, StringUtils.join(requiredBundles, ","));
 
+		boolean isSingleton = false;
 		for (RuleDef ruleDef : ruleDefs) {
 			if (manifestUtil.isRelevant(ruleDef, moduleId)) {
 				for (String instruction: ruleDef.getInstructions().keySet()) {
@@ -137,6 +139,9 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 					}
 					set(analyzer, instruction, ruleDef.getInstructions().get(instruction));
 				}
+				for (String importPackage : ruleDef.getImports()) {
+					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage + ";resolution:=optional");
+				}
 				for (String importPackage : ruleDef.getOptionals()) {
 					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage + ";resolution:=optional");
 				}
@@ -146,20 +151,33 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 				for (String privatePackage : ruleDef.getPrivates()) {
 					set(analyzer, Analyzer.EXPORT_PACKAGE, "!" + privatePackage);
 				}
+				if (StringUtils.isNotBlank(ruleDef.getActivator())) {
+					set(analyzer, Analyzer.BUNDLE_ACTIVATOR, ruleDef.getActivator());
+				}
+				if (ruleDef.getSingleton()) {
+					isSingleton = true;
+				}
 			}
 		}
 		set(analyzer, Analyzer.IMPORT_PACKAGE, "*");
 		set(analyzer, Analyzer.EXPORT_PACKAGE, "*;-noimport:=true;version=" + bundleVersion.toString(Component.Build));
 
-		analyzer.setBundleSymbolicName(bundleSymbolicName);
-		analyzer.setBundleVersion(bundleVersion.toString(Component.Build));
+		analyzer.setBundleSymbolicName(bundleSymbolicName + (isSingleton ? ";singleton:=true" : ""));
+		analyzer.setBundleVersion(bundleVersion.toString());
 
-		analyzer.setJar(classesJarOrDir);
+		File classesJarOrDirToUse = classesJarOrDir;
+		if (classesJarOrDirToUse == null) {
+			classesJarOrDirToUse = File.createTempFile("osgi", UUID.randomUUID().toString());
+			classesJarOrDirToUse.delete();
+			classesJarOrDirToUse.mkdir();
+			classesJarOrDirToUse.deleteOnExit();
+		}
+		analyzer.setJar(classesJarOrDirToUse);
 		if (!classpath.isEmpty()) {
 			analyzer.setClasspath(classpath);
 		}
 
-		try { //
+		try {
 			Manifest res = analyzer.calcManifest();
 			String imports = res.getMainAttributes().getValue(Analyzer.IMPORT_PACKAGE);
 			if (StringUtils.isNotBlank(imports)) {

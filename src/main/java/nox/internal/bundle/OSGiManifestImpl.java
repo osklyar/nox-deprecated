@@ -37,6 +37,9 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	private final List<String> exports = Lists.newArrayList();
 	private final List<String> privates = Lists.newArrayList();
 	private final List<String> optionals = Lists.newArrayList();
+	protected final List<String> imports = Lists.newArrayList();
+	protected boolean singleton = false;
+	protected String activator = null;
 	private File classesJarOrDir = null;
 	private FileCollection classpath = null;
 
@@ -48,9 +51,11 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	public DefaultManifest getEffectiveManifest() {
 		ModuleVersionIdentifier moduleId = new DefaultModuleVersionIdentifier(groupId, artifactId, version);
 		try {
+			File classesDirToUse =
+				classesJarOrDir != null && classesJarOrDir.exists() ? classesJarOrDir : null;
 			ManifestConverter converter = ManifestConverter.withModuleId(moduleId)
 			.withRuleDefs(Lists.newArrayList(this))
-			.withClassesJarOrDir(classesJarOrDir)
+			.withClassesJarOrDir(classesDirToUse)
 			.withClasspath(classpath.getFiles())
 			.withRequiredModules(bundleDependencies)
 			.instance();
@@ -121,8 +126,10 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	}
 
 	@Override
-	public void instruction(String instruction, String value) {
-		instructions.put(instruction, value);
+	public void instruction(String instruction, String... value) {
+		String current = instructions.get(instruction);
+		String incoming = StringUtils.join(value, ",");
+		instructions.put(instruction, StringUtils.isNotBlank(current) ? (current + ",") : "" + incoming);
 	}
 
 	@Override
@@ -158,6 +165,36 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	@Override
 	public List<String> getOptionals() {
 		return Collections.unmodifiableList(optionals);
+	}
+
+	@Override
+	public void imports(String... pkgNames) {
+		imports.addAll(Lists.newArrayList(pkgNames));
+	}
+
+	@Override
+	public List<String> getImports() {
+		return Collections.unmodifiableList(imports);
+	}
+
+	@Override
+	public void activator(String activator) {
+		this.activator = activator;
+	}
+
+	@Override
+	public String getActivator() {
+		return activator;
+	}
+
+	@Override
+	public void singleton(boolean singleton) {
+		this.singleton = singleton;
+	}
+
+	@Override
+	public boolean getSingleton() {
+		return singleton;
 	}
 
 	@Override
