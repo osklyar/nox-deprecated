@@ -3,6 +3,16 @@
  */
 package nox.tasks;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskAction;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -12,17 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskAction;
 
 
 public class BuildProperties extends DefaultTask {
@@ -53,9 +52,17 @@ public class BuildProperties extends DefaultTask {
 	@TaskAction
 	public void action() {
 		List<String> lines = Lists.newArrayList();
-		lines.add("source.. = " + StringUtils.join(getSources(sources, ss -> ss.getByName("main").getJava()), ","));
-		lines.add("bin.includes = " + StringUtils.join(getSources(binincludes, ss -> ss.getByName("main").getResources()), ","));
-		lines.add("output.. = " + (output.isEmpty() ? "bin/" : StringUtils.join(output, ",")));
+		List<String> javaSources = getSources(sources, ss -> ss.getByName("main").getJava());
+		if (!javaSources.isEmpty()) {
+			lines.add("source.. = " + StringUtils.join(javaSources, ","));
+		}
+		List<String> resources = getSources(binincludes, ss -> ss.getByName("main").getResources());
+		if (!resources.isEmpty()) {
+			lines.add("bin.includes = " + StringUtils.join(resources, ","));
+		}
+		if (!javaSources.isEmpty() || !resources.isEmpty()) {
+			lines.add("output.. = " + (output.isEmpty() ? "bin/" : StringUtils.join(output, ",")));
+		}
 		for (Map.Entry<String, String> entry: instructions.entrySet()) {
 			lines.add(String.format("%s=%s", entry.getKey(), entry.getValue()));
 		}
@@ -78,11 +85,17 @@ public class BuildProperties extends DefaultTask {
 			SourceSetContainer sourceSets = getProject().getConvention()
 				.getPlugin(JavaPluginConvention.class)
 				.getSourceSets();
-			for (File srcDir: sourceExtractor.extract(sourceSets).getSrcDirs()) {
-				src.add(srcDir.getAbsolutePath().replace(projectDir.getAbsolutePath() + "/", ""));
+			for (File sourceEntry: sourceExtractor.extract(sourceSets).getSrcDirs()) {
+				if (sourceEntry.exists()) {
+					String element = sourceEntry.getAbsolutePath().replace(projectDir.getAbsolutePath() + "/", "");
+					if (!element.endsWith("/")) {
+						element += "/";
+					}
+					src.add(element);
+				}
 			}
 		}
-		return Lists.transform(src, el -> el.endsWith("/") ? el : el + "/");
+		return src;
 	}
 
 	public void clean() {

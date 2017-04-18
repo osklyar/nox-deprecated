@@ -109,8 +109,7 @@ public class Bundle extends DefaultTask {
 		pluginsDir.mkdirs();
 		p2pluginsDir.mkdirs();
 
-		ArtifactResolver resolver = ArtifactResolver.withDependencyHelper(
-			getProject().getDependencies())
+		ArtifactResolver resolver = ArtifactResolver.withDependencyHelper(getProject().getDependencies())
 			.withConfigurationContainer(getProject().getConfigurations())
 			.withSources(bundles.getWithSources())
 			.instance();

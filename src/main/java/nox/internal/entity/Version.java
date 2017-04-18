@@ -41,27 +41,29 @@ public class Version implements Comparable<Version> {
 
 	public Version(String versionString, boolean withSuffix) {
 		Preconditions.checkNotNull(versionString, "Version string required");
-		String[] parts = versionString.trim().split("\\.|-");
+		String[] parts = versionString.trim().split("\\.");
 		if (parts.length < 1) {
 			throw new IllegalArgumentException("Major version is required");
 		}
 		major = Long.valueOf(parts[0]).longValue();
+		long minorno = 0;
 		if (parts.length > 1) {
-			minor = Long.valueOf(parts[1]).longValue();
-		} else {
-			minor = 0;
+			try {
+				minorno = Long.valueOf(parts[1]).longValue();
+			} catch (NumberFormatException ex) {
+				// ignore
+			}
 		}
+		minor = minorno;
+		long buildno = 0;
 		if (parts.length > 2) {
-			long buildno = 0;
 			try {
 				buildno = Long.valueOf(parts[2]).longValue();
 			} catch (NumberFormatException ex) {
 				// ignore
 			}
-			build = buildno;
-		} else {
-			build = 0;
 		}
+		build = buildno;
 		if (parts.length > 3 && withSuffix) {
 			suffix = parts[3];
 		} else {
