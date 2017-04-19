@@ -49,7 +49,7 @@ public class Bundle extends Versioned {
 
 		String name = attrs.getValue("Bundle-SymbolicName");
 		Preconditions.checkNotNull(name, "Missing Create-SymbolicName in manifest %s", manifest);
-		name = name.split(";")[0].split(",")[0].trim();
+		name = name.split(";")[0].split(",")[0].trim().replaceAll(";singleton:=true", "");
 
 		Version version = new Version(attrs.getValue("Bundle-Version"), true);
 
