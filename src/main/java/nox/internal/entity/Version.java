@@ -28,6 +28,8 @@ public class Version implements Comparable<Version> {
 
 	public final String suffix;
 
+	public boolean shortVersion = false;
+
 	public Version(long major, long minor, long build, String suffix) {
 		this.major = major;
 		this.minor = minor;
@@ -62,6 +64,8 @@ public class Version implements Comparable<Version> {
 			} catch (NumberFormatException ex) {
 				// ignore
 			}
+		} else {
+			shortVersion = true;
 		}
 		build = buildno;
 		if (parts.length > 3 && withSuffix) {
@@ -85,8 +89,10 @@ public class Version implements Comparable<Version> {
 
 	@Override
 	public String toString() {
-		String res = String.format("%d.%d.%d", Long.valueOf(major), Long.valueOf(minor),
-			Long.valueOf(build));
+		if (shortVersion) {
+			return String.format("%d.%d", Long.valueOf(major), Long.valueOf(minor));
+		}
+		String res = String.format("%d.%d.%d", Long.valueOf(major), Long.valueOf(minor), Long.valueOf(build));
 		if (StringUtils.isNotBlank(suffix)) {
 			res += "." + suffix;
 		}
@@ -97,11 +103,14 @@ public class Version implements Comparable<Version> {
 		switch (component) {
 			case Major:
 				return String.format("%d", Long.valueOf(major));
+			case Build:
+				if (!shortVersion) {
+					return String.format("%d.%d.%d", Long.valueOf(major), Long.valueOf(minor),
+						Long.valueOf(build));
+				}
+				// fall through to minor
 			case Minor:
 				return String.format("%d.%d", Long.valueOf(major), Long.valueOf(minor));
-			case Build:
-				return String.format("%d.%d.%d", Long.valueOf(major), Long.valueOf(minor),
-					Long.valueOf(build));
 		}
 		return toString();
 	}
