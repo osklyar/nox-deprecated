@@ -3,10 +3,26 @@
  */
 package nox.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.google.common.collect.Lists;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.util.ConfigureUtil;
+
 import groovy.lang.Closure;
 import nox.ext.Platform;
 import nox.internal.platform.Location;
@@ -16,21 +32,6 @@ import nox.internal.platform.Unit;
 import nox.internal.system.Arch;
 import nox.internal.system.OS;
 import nox.internal.system.Win;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.util.ConfigureUtil;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Create extends DefaultTask {
@@ -39,7 +40,7 @@ public class Create extends DefaultTask {
 
 	public static final String createConfigFile = "create-config.json";
 
-	private final Platform platform;
+	private transient final Platform platform;
 
 	private final List<Location> locations = Lists.newArrayList();
 
@@ -162,13 +163,13 @@ public class Create extends DefaultTask {
 		locations.add(location);
 	}
 
-	@Override
-	public String toString() {
-		try {
-			return new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).writeValueAsString(locations);
-		} catch (JsonProcessingException ex) {
-			throw new GradleException("Failed to construct JSON", ex);
-		}
+	@Internal
+	public List<Location> getLocations() {
+		return Collections.unmodifiableList(locations);
 	}
 
+	@Override
+	public String toString() {
+		return String.format("CreateTask{%s}", locations != null ? Lists.transform(locations, l -> l.repository.location) : locations);
+	}
 }

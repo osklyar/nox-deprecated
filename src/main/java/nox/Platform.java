@@ -3,6 +3,20 @@
  */
 package nox;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.tasks.TaskContainer;
+
 import nox.ext.Bundles;
 import nox.tasks.Bundle;
 import nox.tasks.CleanBundles;
@@ -11,16 +25,6 @@ import nox.tasks.CleanPlatform;
 import nox.tasks.Create;
 import nox.tasks.GetSdk;
 import nox.tasks.Ivynize;
-import org.apache.commons.io.FileUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.tasks.TaskContainer;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
 
 
 public class Platform implements Plugin<Project> {
@@ -57,16 +61,16 @@ public class Platform implements Plugin<Project> {
 
 
 			Bundles bundles = p.getExtensions().findByType(Bundles.class);
-			String bundlesJson = bundles.toString();
 			try {
+				String bundlesJson = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).writeValueAsString(bundles);
 				FileUtils.write(new File(platform.getPlatformBuildDir(), Bundles.bundlesConfigFile), bundlesJson, Charset.forName("UTF-8"));
 			} catch (IOException ex) {
 				throw new GradleException("Cannot store " + Bundles.bundlesConfigFile + " in the build dir", ex);
 			}
 
 			Create createTask = (Create) p.getTasksByName("create", false).iterator().next();
-			String createJson = createTask.toString();
 			try {
+				String createJson = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).writeValueAsString(createTask.getLocations());
 				FileUtils.write(new File(platform.getPlatformBuildDir(), Create.createConfigFile), createJson, Charset.forName("UTF-8"));
 			} catch (IOException ex) {
 				throw new GradleException("Cannot store " + Create.createConfigFile + " in the build dir", ex);

@@ -3,17 +3,14 @@
  */
 package nox.ext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.common.collect.Lists;
+
 import groovy.lang.Closure;
 import nox.internal.bundle.BundleDef;
 import nox.internal.bundle.RuleDef;
-import org.gradle.api.GradleException;
-
-import java.util.Collections;
-import java.util.List;
 
 
 class BundlesImpl implements Bundles {
@@ -93,10 +90,6 @@ class BundlesImpl implements Bundles {
 
 	@Override
 	public String toString() {
-		try {
-			return new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).writeValueAsString(this);
-		} catch (JsonProcessingException ex) {
-			throw new GradleException("Failed to construct JSON", ex);
-		}
+		return String.format("Bundles{%s}", Lists.transform(bundleDefs, def -> def.getGroupId() + ":" + def.getArtifactId()));
 	}
 }

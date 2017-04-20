@@ -7,14 +7,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import org.apache.commons.io.FileUtils;
@@ -56,15 +59,28 @@ class BundlizerImpl implements Bundlizer {
 
 		try (FileSystem fs = FileSystems.newFileSystem(URI.create("jar:" + targetFile.toURI()), Maps.newHashMap()))
 		{
-			Path nf = fs.getPath("META-INF");
-			if (Files.notExists(nf)) {
-				Files.createDirectory(nf);
+			Path metainf = fs.getPath("META-INF");
+			if (Files.notExists(metainf)) {
+				Files.createDirectory(metainf);
+			} else {
+				List<Path> signaturesToDelete = Lists.newArrayList();
+				try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(metainf)) {
+					for (Path path : directoryStream) {
+						String upperPath = path.toString().toUpperCase();
+						if (upperPath.endsWith("DSA") || upperPath.endsWith("SF") || upperPath.endsWith("RSA")) {
+							signaturesToDelete.add(path);
+						}
+					}
+				}
+				for (Path path : signaturesToDelete) {
+					Files.deleteIfExists(path);
+				}
 			}
-			nf = fs.getPath("META-INF", "MANIFEST.MF");
-			try (OutputStream os = Files.newOutputStream(nf, StandardOpenOption.CREATE)) {
+			Path mf = fs.getPath("META-INF", "MANIFEST.MF");
+			try (OutputStream os = Files.newOutputStream(mf, StandardOpenOption.CREATE)) {
 				manifest.write(os);
 			}
-		} catch (ZipError ex) {
+		}	catch (ZipError | IOException ex) {
 			String message = String.format("Failed to write manifest to %s", targetFile);
 			if (!manifest.getMainAttributes().getValue(Analyzer.BUNDLE_SYMBOLICNAME).endsWith(".source")) {
 				throw new GradleException(message, ex);
