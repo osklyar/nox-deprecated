@@ -29,9 +29,11 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
 
 import nox.internal.bundle.OSGiManifest;
+import nox.tasks.BuildProperties;
 
 
 public class OSGi implements Plugin<Project> {
@@ -70,12 +72,28 @@ public class OSGi implements Plugin<Project> {
 		manifest.artifactId(archivesBaseName);
 		manifest.version(project.getVersion().toString());
 
-		Jar jarTask = (Jar) project.getTasks().getByName("jar");
+		TaskContainer tasks = project.getTasks();
+
+		Jar jarTask = (Jar) tasks.getByName("jar");
 		jarTask.setManifest(manifest);
 
 		registerUnpackAction(project);
 
 		project.afterEvaluate(p -> registerJarManifestAction(p, manifest));
+
+		BuildProperties buildpropsTask = tasks.create(BuildProperties.name, BuildProperties.class);
+		buildpropsTask.onlyIf(task -> !jarTask.getState().getUpToDate());
+
+		jarTask.dependsOn(buildpropsTask);
+		tasks.getByName("clean").doLast(task -> {
+			buildpropsTask.clean();
+
+			ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
+			if (!ext.has(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
+				String.valueOf(ext.get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
+				new File(new File(project.getProjectDir().getAbsolutePath(), "META-INF"),"MANIFEST.MF").delete();
+			}
+		});
 	}
 
 	private void registerJarManifestAction(Project project, OSGiManifest manifest) {

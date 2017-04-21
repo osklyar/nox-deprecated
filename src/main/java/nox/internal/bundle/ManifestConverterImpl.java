@@ -140,7 +140,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 					set(analyzer, instruction, ruleDef.getInstructions().get(instruction));
 				}
 				for (String importPackage : ruleDef.getImports()) {
-					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage + ";resolution:=optional");
+					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage);
 				}
 				for (String importPackage : ruleDef.getOptionals()) {
 					set(analyzer, Analyzer.IMPORT_PACKAGE, importPackage + ";resolution:=optional");

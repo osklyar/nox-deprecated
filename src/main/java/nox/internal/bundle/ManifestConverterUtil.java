@@ -3,20 +3,18 @@
  */
 package nox.internal.bundle;
 
+import com.google.common.base.Objects;
+import nox.internal.entity.Version;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import com.google.common.base.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
-import nox.internal.entity.Version;
 
 import static java.time.temporal.ChronoField.DAY_OF_MONTH;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
@@ -112,6 +110,8 @@ class ManifestConverterUtil {
 			}
 
 			Version v = new Version(version, false);
+			// expand short versions with 0 build version
+			v.shortVersion = false;
 			if (!withSuffix) {
 				return v;
 			}

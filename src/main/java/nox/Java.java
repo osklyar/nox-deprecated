@@ -3,10 +3,12 @@
  */
 package nox;
 
-import java.util.Map;
-
 import com.google.common.base.Preconditions;
-
+import groovy.lang.Closure;
+import nox.ext.Platform;
+import nox.internal.system.Arch;
+import nox.internal.system.OS;
+import nox.internal.system.Win;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ClientModule;
@@ -20,11 +22,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import groovy.lang.Closure;
-import nox.ext.Platform;
-import nox.internal.system.Arch;
-import nox.internal.system.OS;
-import nox.internal.system.Win;
+import java.util.Map;
 
 
 public class Java implements Plugin<Project> {
@@ -58,6 +56,10 @@ public class Java implements Plugin<Project> {
 					String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.PLUGINS_SUBDIR));
 				ivyLayout.artifact(
 					String.format("%s/[module](.[classifier])_[revision]", Platform.PLUGINS_SUBDIR));
+				ivyLayout.artifact(
+					String.format("%s/[module](.[classifier])-[revision].[ext]", Platform.PLUGINS_SUBDIR));
+				ivyLayout.artifact(
+					String.format("%s/[module](.[classifier])-[revision]", Platform.PLUGINS_SUBDIR));
 				ivyLayout.ivy(
 					String.format("%s/[module](.[classifier])_[revision].[ext]", Platform.IVY_SUBDIR));
 			});

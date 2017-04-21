@@ -3,6 +3,8 @@
  */
 package nox;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import nox.ext.Bundles;
 import nox.tasks.Bundle;
 import nox.tasks.CleanBundles;
@@ -39,16 +41,14 @@ public class Platform implements Plugin<Project> {
 
 		Bundle bundle = tasks.create(Bundle.name, Bundle.class);
 		Create create = tasks.create(Create.name, Create.class);
-		Ivynize ivynize = tasks.create(Ivynize.name, Ivynize.class);
+		tasks.create(Ivynize.name, Ivynize.class);
 
 		create.dependsOn(bundle);
-		ivynize.dependsOn(create);
 
 		CleanBundles cleanBundles = tasks.create(CleanBundles.name, CleanBundles.class);
 		CleanIvy cleanIvy = tasks.create(CleanIvy.name, CleanIvy.class);
 		CleanPlatform cleanPlatform = tasks.create(CleanPlatform.name, CleanPlatform.class);
 
-		cleanIvy.dependsOn(cleanBundles);
 		cleanPlatform.dependsOn(cleanIvy);
 
 		bundle.mustRunAfter(cleanBundles, cleanIvy, cleanPlatform, getSdk);
@@ -57,16 +57,16 @@ public class Platform implements Plugin<Project> {
 
 
 			Bundles bundles = p.getExtensions().findByType(Bundles.class);
-			String bundlesJson = bundles.toString();
 			try {
+				String bundlesJson = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).writeValueAsString(bundles);
 				FileUtils.write(new File(platform.getPlatformBuildDir(), Bundles.bundlesConfigFile), bundlesJson, Charset.forName("UTF-8"));
 			} catch (IOException ex) {
 				throw new GradleException("Cannot store " + Bundles.bundlesConfigFile + " in the build dir", ex);
 			}
 
 			Create createTask = (Create) p.getTasksByName("create", false).iterator().next();
-			String createJson = createTask.toString();
 			try {
+				String createJson = new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true).writeValueAsString(createTask.getLocations());
 				FileUtils.write(new File(platform.getPlatformBuildDir(), Create.createConfigFile), createJson, Charset.forName("UTF-8"));
 			} catch (IOException ex) {
 				throw new GradleException("Cannot store " + Create.createConfigFile + " in the build dir", ex);
