@@ -103,8 +103,8 @@ public class OSGi implements Plugin<Project> {
 
 	private void registerJarManifestAction(Project project, OSGiManifest manifest) {
 		ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
-		if (ext.has(REQUIRE_BUNDLES) && Boolean.valueOf(
-			String.valueOf(ext.get(REQUIRE_BUNDLES))).booleanValue()) {
+		if (project.getProperties().containsKey(REQUIRE_BUNDLES) && Boolean.valueOf(
+			String.valueOf(project.getProperties().get(REQUIRE_BUNDLES))).booleanValue()) {
 			for (ResolvedArtifact artifact : project.getConfigurations()
 				.getByName("runtime")
 				.getResolvedConfiguration()
@@ -114,16 +114,16 @@ public class OSGi implements Plugin<Project> {
 					new DefaultModuleVersionIdentifier(resolvedId.getName(), resolvedId.getName(), resolvedId.getVersion()));
 			}
 		}
-		if (ext.has(WITH_EXPORT_USES) && !Boolean.valueOf(
-			String.valueOf(ext.get(WITH_EXPORT_USES))).booleanValue()) {
+		if (project.getProperties().containsKey(WITH_EXPORT_USES) && !Boolean.valueOf(
+			String.valueOf(project.getProperties().get(WITH_EXPORT_USES))).booleanValue()) {
 			manifest.withExportUses(false);
 		}
 	}
 
 	private void registerUnpackAction(Project project) {
 		ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
-		if (!ext.has(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
-			String.valueOf(ext.get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
+		if (!project.getProperties().containsKey(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
+			String.valueOf(project.getProperties().get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
 			File projectDir = project.getProjectDir().getAbsoluteFile();
 			Jar jarTask = (Jar) project.getTasks().getByName("jar");
 			Task buildTask = project.getTasks().getByName("build");

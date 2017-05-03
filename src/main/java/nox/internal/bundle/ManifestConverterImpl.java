@@ -89,7 +89,7 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 	}
 
 	@Override
-	public Configurator withUses(boolean uses) {
+	public Configurator withUses(boolean withUses) {
 		this.withUses = withUses;
 		return this;
 	}
@@ -125,9 +125,6 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		}
 
 		Analyzer analyzer = new Analyzer();
-		if (!withUses) {
-			set(analyzer, Analyzer.NOUSES, "true");
-		}
 
 		// copy existing manifest
 		if (manifest != null && !alreadyOSGi) {
@@ -186,6 +183,10 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		analyzer.setJar(classesJarOrDirToUse);
 		if (!classpath.isEmpty()) {
 			analyzer.setClasspath(classpath);
+		}
+
+		if (!withUses) {
+			analyzer.setProperty(Analyzer.NOUSES, "true");
 		}
 
 		try {
