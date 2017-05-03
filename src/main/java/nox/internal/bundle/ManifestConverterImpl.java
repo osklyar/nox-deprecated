@@ -45,6 +45,8 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 
 	private Set<File> classpath = Sets.newHashSet();
 
+	private boolean withUses = true;
+
 	ManifestConverterImpl(ModuleVersionIdentifier moduleId) throws IOException {
 		Preconditions.checkNotNull(moduleId, "Module Id must be available");
 		this.moduleId = moduleId;
@@ -87,6 +89,12 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 	}
 
 	@Override
+	public Configurator withUses(boolean uses) {
+		this.withUses = withUses;
+		return this;
+	}
+
+	@Override
 	public ManifestConverter instance() {
 		// put moduleDef as the last rule if provided
 		if (moduleDef != null) {
@@ -117,6 +125,9 @@ class ManifestConverterImpl implements ManifestConverter, ManifestConverter.Conf
 		}
 
 		Analyzer analyzer = new Analyzer();
+		if (!withUses) {
+			set(analyzer, Analyzer.NOUSES, "true");
+		}
 
 		// copy existing manifest
 		if (manifest != null && !alreadyOSGi) {

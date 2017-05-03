@@ -39,14 +39,19 @@ import nox.tasks.BuildProperties;
 public class OSGi implements Plugin<Project> {
 
 	/**
-	 * Add osgi-unpackManifest=false to gradle.properties to prevent copying
+	 * Add osgiUnpackManifest=false to gradle.properties to prevent copying
 	 */
-	private static final String UNPACK_OSGI_MANIFEST = "osgi-unpackManifest";
+	private static final String UNPACK_OSGI_MANIFEST = "osgiUnpackManifest";
 
 	/**
-	 * Add osgi-requireBundles=true to gradle.properties to require bundles
+	 * Add osgiRequireBundles=true to gradle.properties to require bundles
 	 */
-	private static final String REQUIRE_BUNDLES = "osgi-requireBundles";
+	private static final String REQUIRE_BUNDLES = "osgiRequireBundles";
+
+	/**
+	 * Add osgiWithExportUses=false to gradle.properties to drop the uses clause from exports
+	 */
+	private static final String WITH_EXPORT_USES = "osgiWithExportUses";
 
 	@Override
 	public void apply(Project project) {
@@ -108,6 +113,10 @@ public class OSGi implements Plugin<Project> {
 				manifest.withBundleDependency(
 					new DefaultModuleVersionIdentifier(resolvedId.getName(), resolvedId.getName(), resolvedId.getVersion()));
 			}
+		}
+		if (ext.has(WITH_EXPORT_USES) && !Boolean.valueOf(
+			String.valueOf(ext.get(WITH_EXPORT_USES))).booleanValue()) {
+			manifest.withExportUses(false);
 		}
 	}
 

@@ -223,11 +223,17 @@ with `*`. Unless overwritten, all packages are added to `Export-Package` along w
 (being the bundle version). Packages exported by the bundle are not by default added to the `Import-Package`
 if they are also used internally.
 
-### Copying manifest to the project dir
+### Further parameters for generating OSGi manifests
 
-By default the generated manifest will be copied into `$projectDir/META-INF/MANIFEST.MF` overwriting
-any existing file. To prevent this set `osgi-unpackManifest=false` in your `gradle.properties` file 
-at the root project (and override where required by adding a `gradle.properties` file to other projects).
+The following extended project properties are evaluated for every project using the `nox.OSGi` plugin:
+
+* `osgiUnpackManifest`, default `true`, specifies whether the manifest generated for the jar should
+ be unpacked into `$projectDir/META-INF/MANIFEST.MF` overwriting any existing file. 
+ This functionality is useful for Eclipse IDE integration with the Plugin Nature;
+* `osgiRequireBundles`, default `false`, specifies whether gradle resolved module dependencies
+ should be included as required bundles (alternatively only package imports are used);
+* `osgiWithExportUses`, default `true`, specifies whether exported packages should include the
+ `uses` clause.
 
 Unlike other gradle plugins for OSGi, the `nox.Java` does not try to take into account any information
 found in manifests within the project tree. It generates manifests purely for the purpose of OSGi

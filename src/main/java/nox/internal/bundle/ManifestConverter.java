@@ -3,13 +3,13 @@
  */
 package nox.internal.bundle;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.jar.Manifest;
+
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 
 public interface ManifestConverter {
@@ -31,6 +31,8 @@ public interface ManifestConverter {
 		Configurator withModuleDef(ModuleDef moduleDef);
 
 		Configurator withRuleDefs(List<RuleDef> ruleDefs);
+
+		Configurator withUses(boolean uses);
 
 		ManifestConverter instance();
 	}

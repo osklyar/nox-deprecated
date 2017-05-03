@@ -4,7 +4,6 @@
 package nox.internal.bundle;
 
 import java.io.File;
-import java.util.Collection;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.file.FileCollection;
@@ -23,4 +22,6 @@ public interface OSGiManifest extends Manifest, RuleDef {
 	OSGiManifest withClasspath(FileCollection classpath);
 
 	OSGiManifest withBundleDependency(ModuleVersionIdentifier moduleId);
+
+	OSGiManifest withExportUses(boolean withUses);
 }

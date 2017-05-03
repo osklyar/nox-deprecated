@@ -42,6 +42,7 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	protected String activator = null;
 	private File classesJarOrDir = null;
 	private FileCollection classpath = null;
+	private boolean withUses = true;
 
 	OSGiManifestImpl(PathToFileResolver fileResolver) {
 		super(fileResolver);
@@ -58,6 +59,7 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 			.withClassesJarOrDir(classesDirToUse)
 			.withClasspath(classpath.getFiles())
 			.withRequiredModules(bundleDependencies)
+			.withUses(withUses)
 			.instance();
 			DefaultManifest baseManifest = new DefaultManifest(null);
 			baseManifest.attributes(getAttributes());
@@ -212,6 +214,12 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	@Override
 	public OSGiManifest withBundleDependency(ModuleVersionIdentifier moduleId) {
 		bundleDependencies.add(moduleId);
+		return this;
+	}
+
+	@Override
+	public OSGiManifest withExportUses(boolean withUses) {
+		this.withUses = withUses;
 		return this;
 	}
 
