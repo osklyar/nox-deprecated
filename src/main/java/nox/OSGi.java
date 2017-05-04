@@ -3,18 +3,9 @@
  */
 package nox;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
 import com.google.common.collect.Maps;
-
+import nox.internal.bundle.OSGiManifest;
+import nox.tasks.BuildProperties;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,11 +20,20 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.language.jvm.tasks.ProcessResources;
 
-import nox.internal.bundle.OSGiManifest;
-import nox.tasks.BuildProperties;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 
 public class OSGi implements Plugin<Project> {
@@ -89,7 +89,18 @@ public class OSGi implements Plugin<Project> {
 		BuildProperties buildpropsTask = tasks.create(BuildProperties.name, BuildProperties.class);
 		buildpropsTask.onlyIf(task -> !jarTask.getState().getUpToDate());
 
-		jarTask.dependsOn(buildpropsTask);
+
+		Copy copyBinIncludes = tasks.create("copyBinIncludes", Copy.class);
+		copyBinIncludes.dependsOn(buildpropsTask);
+
+		ProcessResources procRes = (ProcessResources) tasks.getByName("processResources");
+		procRes.dependsOn(copyBinIncludes);
+
+		project.afterEvaluate(p -> copyBinIncludes.from(p.getProjectDir())
+            .into(procRes.getDestinationDir())
+            .include(buildpropsTask.binincludes().toArray(new String[]{}))
+            .exclude("**/MANIFEST.MF", "**/.gitkeep"));
+
 		tasks.getByName("clean").doLast(task -> {
 			buildpropsTask.clean();
 
