@@ -3,18 +3,6 @@
  */
 package nox.tasks;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskAction;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -26,6 +14,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskAction;
 
 
 public class BuildProperties extends DefaultTask {
@@ -65,21 +66,16 @@ public class BuildProperties extends DefaultTask {
 	public void action() {
 		List<String> lines = Lists.newArrayList();
 		List<String> javaSources = getSources(sources, ss -> ss.getByName("main").getJava());
+		javaSources.addAll(getSources(Lists.newArrayList(), ss -> ss.getByName("main").getResources()));
 		if (!javaSources.isEmpty()) {
 			lines.add("source.. = " + StringUtils.join(javaSources, ","));
 		}
-		Collection<String> resources = Sets.newLinkedHashSet(binincludes);
-		resources.addAll(getSources(Lists.newArrayList(), ss -> ss.getByName("main").getResources()));
-		resources = Collections2.filter(resources, path -> {
-			if ("META-INF/".equals(path)) {
-				return true;
-			}
-			return new File(getProject().getProjectDir(), path).exists();
-		});
-		if (!resources.isEmpty()) {
-			lines.add("bin.includes = " + StringUtils.join(resources, ","));
+		Collection<String> bins = Collections2.filter(Sets.newLinkedHashSet(binincludes), path ->
+			"META-INF/".equals(path) || new File(getProject().getProjectDir(), path).exists());
+		if (!bins.isEmpty()) {
+			lines.add("bin.includes = " + StringUtils.join(bins, ","));
 		}
-		if (!javaSources.isEmpty() || !resources.isEmpty()) {
+		if (!javaSources.isEmpty()) {
 			lines.add("output.. = " + (output.isEmpty() ? "bin/" : StringUtils.join(output, ",")));
 		}
 		for (Map.Entry<String, String> entry: instructions.entrySet()) {
