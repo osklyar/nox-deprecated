@@ -2,7 +2,7 @@ apply plugin: "idea"
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven'
 
-version = "0.6.1-SNAPSHOT"
+version = "0.8.0"
 group = "com.silvertern.gradle"
 
 jar.manifest.attributes (
@@ -23,6 +23,10 @@ gradlePlugin {
 		noxosgi {
 			id = "nox.OSGi"
 			implementationClass = "nox.OSGi"
+		}
+		aspectj {
+			id = "nox.AspectJ"
+			implementationClass = "nox.AspectJ"
 		}
 	}
 }
