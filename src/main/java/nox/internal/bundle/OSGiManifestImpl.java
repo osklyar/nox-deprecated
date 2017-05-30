@@ -3,18 +3,8 @@
  */
 package nox.internal.bundle;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.Manifest;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -23,6 +13,15 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.WrapUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.Manifest;
 
 
 class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {

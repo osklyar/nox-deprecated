@@ -17,7 +17,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePluginConvention;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.Copy;
@@ -52,6 +51,11 @@ public class OSGi implements Plugin<Project> {
 	 * Add osgiWithExportUses=false to gradle.properties to drop the uses clause from exports
 	 */
 	private static final String WITH_EXPORT_USES = "osgiWithExportUses";
+
+	/**
+	 * Add osgiWithExportUses=false to gradle.properties to drop the uses clause from exports
+	 */
+	private static final String WITH_QUALIFIER = "osgiWithQualifier";
 
 	@Override
 	public void apply(Project project) {
@@ -104,9 +108,8 @@ public class OSGi implements Plugin<Project> {
 		tasks.getByName("clean").doLast(task -> {
 			buildpropsTask.clean();
 
-			ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
-			if (!ext.has(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
-				String.valueOf(ext.get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
+			if (!project.getProperties().containsKey(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
+				String.valueOf(project.getProperties().get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
 				new File(new File(project.getProjectDir().getAbsolutePath(), "META-INF"),"MANIFEST.MF").delete();
 			}
 		});
@@ -128,10 +131,13 @@ public class OSGi implements Plugin<Project> {
 			String.valueOf(project.getProperties().get(WITH_EXPORT_USES))).booleanValue()) {
 			manifest.withExportUses(false);
 		}
+		if (project.getProperties().containsKey(WITH_QUALIFIER) && Boolean.valueOf(
+			String.valueOf(project.getProperties().get(WITH_QUALIFIER))).booleanValue()) {
+			manifest.withQualifier(true);
+		}
 	}
 
 	private void registerUnpackAction(Project project) {
-		ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
 		if (!project.getProperties().containsKey(UNPACK_OSGI_MANIFEST) || Boolean.valueOf(
 			String.valueOf(project.getProperties().get(UNPACK_OSGI_MANIFEST))).booleanValue()) {
 			File projectDir = project.getProjectDir().getAbsoluteFile();
