@@ -113,7 +113,6 @@ public class OSGi implements Plugin<Project> {
 	}
 
 	private void registerJarManifestAction(Project project, OSGiManifest manifest) {
-		ExtraPropertiesExtension ext = project.getExtensions().getExtraProperties();
 		if (project.getProperties().containsKey(REQUIRE_BUNDLES) && Boolean.valueOf(
 			String.valueOf(project.getProperties().get(REQUIRE_BUNDLES))).booleanValue()) {
 			for (ResolvedArtifact artifact : project.getConfigurations()

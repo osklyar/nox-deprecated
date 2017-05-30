@@ -5,7 +5,10 @@ package nox.internal.entity;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
 
 
 public class Version implements Comparable<Version> {
@@ -43,7 +46,7 @@ public class Version implements Comparable<Version> {
 
 	public Version(String versionString, boolean withSuffix) {
 		Preconditions.checkNotNull(versionString, "Version string required");
-		String[] parts = versionString.trim().split("\\.");
+		String[] parts = versionString.trim().split("(\\.|-|_)");
 		if (parts.length < 1) {
 			throw new IllegalArgumentException("Major version is required");
 		}
@@ -68,8 +71,11 @@ public class Version implements Comparable<Version> {
 			shortVersion = true;
 		}
 		build = buildno;
-		if (parts.length > 3 && withSuffix) {
+		if (parts.length == 4 && withSuffix) {
 			suffix = parts[3];
+		} else if (parts.length > 4 && withSuffix) {
+			List<String> suffixParts = Lists.newArrayList(parts).subList(3, parts.length);
+			suffix = StringUtils.join(suffixParts, "-");
 		} else {
 			suffix = null;
 		}
