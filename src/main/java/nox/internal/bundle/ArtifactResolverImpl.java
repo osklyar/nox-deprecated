@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -147,7 +148,7 @@ class ArtifactResolverImpl implements ArtifactResolver, ArtifactResolver.Configu
 		IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(artifactId, "jar", "jar");
 		ModuleComponentIdentifier modCompId = new DefaultModuleComponentIdentifier(groupId, artifactId, version);
 		ComponentArtifactIdentifier compArtifactId = new DefaultModuleComponentArtifactIdentifier(modCompId, ivyArtifactName);
-		ResolvedArtifact artifact = new DefaultResolvedArtifact(owner, ivyArtifactName, compArtifactId, () -> bundleDef.getJarFile());
+		ResolvedArtifact artifact = new DefaultResolvedArtifact(moduleId, ivyArtifactName, compArtifactId, new DefaultTaskDependency(), () -> bundleDef.getJarFile());
 		return new ResolvedArtifactExt(artifact).withSourceJar(bundleDef.getSourceJarFile());
 	}
 }

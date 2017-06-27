@@ -3,12 +3,12 @@
  */
 package nox.internal.bundle;
 
-import java.io.File;
-
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.internal.file.PathToFileResolver;
+
+import java.io.File;
 
 
 public interface OSGiManifest extends Manifest, RuleDef {
@@ -24,4 +24,6 @@ public interface OSGiManifest extends Manifest, RuleDef {
 	OSGiManifest withBundleDependency(ModuleVersionIdentifier moduleId);
 
 	OSGiManifest withExportUses(boolean withUses);
+
+	OSGiManifest from(File manifestFile);
 }

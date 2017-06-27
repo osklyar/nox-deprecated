@@ -15,6 +15,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +43,7 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	private File classesJarOrDir = null;
 	private FileCollection classpath = null;
 	private boolean withUses = true;
+	private File manifestFile = null;
 
 	OSGiManifestImpl(PathToFileResolver fileResolver) {
 		super(fileResolver);
@@ -51,19 +53,29 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	public DefaultManifest getEffectiveManifest() {
 		ModuleVersionIdentifier moduleId = new DefaultModuleVersionIdentifier(groupId, artifactId, version);
 		try {
-			File classesDirToUse =
-				classesJarOrDir != null && classesJarOrDir.exists() ? classesJarOrDir : null;
-			ManifestConverter converter = ManifestConverter.withModuleId(moduleId)
-			.withRuleDefs(Lists.newArrayList(this))
-			.withClassesJarOrDir(classesDirToUse)
-			.withClasspath(classpath.getFiles())
-			.withRequiredModules(bundleDependencies)
-			.withUses(withUses)
-			.instance();
 			DefaultManifest baseManifest = new DefaultManifest(null);
 			baseManifest.attributes(getAttributes());
 
-			Manifest manifest = converter.convertToOSGiManifest();
+			Manifest manifest;
+
+			if (manifestFile == null) {
+				File classesDirToUse =
+					classesJarOrDir != null && classesJarOrDir.exists() ? classesJarOrDir : null;
+				ManifestConverter converter = ManifestConverter.withModuleId(moduleId)
+					.withRuleDefs(Lists.newArrayList(this))
+					.withClassesJarOrDir(classesDirToUse)
+					.withClasspath(classpath.getFiles())
+					.withRequiredModules(bundleDependencies)
+					.withUses(withUses)
+					.instance();
+
+				manifest = converter.convertToOSGiManifest();
+			} else {
+				try (FileInputStream fis = new FileInputStream(manifestFile)) {
+					manifest = new Manifest(fis);
+				}
+			}
+
 			java.util.jar.Attributes attributes = manifest.getMainAttributes();
 			for (Map.Entry<Object, Object> entry : attributes.entrySet()) {
 				baseManifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
@@ -219,6 +231,12 @@ class OSGiManifestImpl extends DefaultManifest implements OSGiManifest {
 	@Override
 	public OSGiManifest withExportUses(boolean withUses) {
 		this.withUses = withUses;
+		return this;
+	}
+
+	@Override
+	public OSGiManifest from(File manifestFile) {
+		this.manifestFile = manifestFile;
 		return this;
 	}
 
