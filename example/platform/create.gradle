@@ -44,7 +44,7 @@ create {
 		unit "org.dom4j", "1.6.1.v201312101416"
 		unit "org.easymock", "2.4.0.v20090202-0900"
 	}
-
+/*
 	location "http://download.eclipse.org/nebula/releases/1.2.0/", {
 		unit "org.eclipse.nebula.cwt", "1.0.0.201703081533"
 		unit "org.eclipse.nebula.effects.stw", "1.0.0.201703081533"
@@ -73,4 +73,5 @@ create {
 		unit "org.eclipse.nebula.widgets.datechooser", "1.0.0.201704071222"
 		unit "org.eclipse.nebula.widgets.pagination", "1.0.0.201704071222"
 	}
+*/
 }

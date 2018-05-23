@@ -3,13 +3,11 @@
  */
 package nox.tasks;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import nox.ext.Platform;
-import nox.internal.system.Arch;
-import nox.internal.system.OS;
-import nox.internal.system.Win;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.DefaultTask;
@@ -21,10 +19,14 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.slf4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.UUID;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+
+import nox.ext.Platform;
+import nox.internal.system.Arch;
+import nox.internal.system.OS;
+import nox.internal.system.Win;
 
 
 public class GetSdk extends DefaultTask {
@@ -33,19 +35,18 @@ public class GetSdk extends DefaultTask {
 
 	private static final Logger logger = Logging.getLogger(GetSdk.class);
 
-	private static final String baseUrl = "http://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops4";
+	private static final String baseUrl = "http://ftp.halifax.rwth-aachen.de/eclipse//eclipse/downloads/drops4";
+
 
 	private static final Map<String, String> prefixes = Maps.newTreeMap();
 
 	static {
-		prefixes.put("4.6", "R-4.6-201606061100");
-		prefixes.put("4.6.2", "R-4.6.2-201611241400");
-		prefixes.put("4.7M5", "S-4.7M5-201701261030");
+		prefixes.put("4.7.3", "R-4.7.3-201803010715");
 	}
 
 	@Optional
 	@Input
-	public String version = "4.6.2";
+	public String version = "4.7";
 
 	private final Platform platform;
 
@@ -85,6 +86,10 @@ public class GetSdk extends DefaultTask {
 			Map<String, Object> params;
 
 			params = Maps.newHashMap();
+
+			System.out.println(downloadUrl());
+			System.out.println("http://ftp.halifax.rwth-aachen.de/eclipse//eclipse/downloads/drops4/R-4.7.3-201803010715/eclipse-SDK-4.7.3-linux-gtk-x86_64.tar.gz");
+
 			params.put("src", downloadUrl());
 			params.put("dest", sdkArchive);
 			params.put("verbose", logger.isDebugEnabled());
@@ -118,10 +123,10 @@ public class GetSdk extends DefaultTask {
 	private String downloadUrl() {
 		String archSuffix = Arch.is(Arch.x86_64) ? "-x86_64" : "";
 		if (OS.is(OS.win32)) {
-			return String.format("%s/%s/eclipse-SDK-%s-win32%s.zip&r=1", baseUrl, prefixes.get(version),
+			return String.format("%s/%s/eclipse-SDK-%s-win32%s.zip", baseUrl, prefixes.get(version),
 				version, archSuffix);
 		}
-		return String.format("%s/%s/eclipse-SDK-%s-%s-%s%s.tar.gz&r=1", baseUrl, prefixes.get(version),
+		return String.format("%s/%s/eclipse-SDK-%s-%s-%s%s.tar.gz", baseUrl, prefixes.get(version),
 			version, OS.current(), Win.current(), archSuffix);
 	}
 }
