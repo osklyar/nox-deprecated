@@ -3,7 +3,7 @@ create {
 	 	unit "org.eclipse.sdk.ide", "4.6.0.I20160606-1100"
 		unit "com.ibm.icu", "56.1.0.v201601250100"
 	 }
-
+/*
 	location "http://download.eclipse.org/tools/orbit/downloads/drops/R20150821153341/repository/", {
 		unit "javax.activation", "1.1.0.v201211130549"
  		unit "javax.annotation", "1.2.0.v201602091430"
@@ -44,6 +44,7 @@ create {
 		unit "org.dom4j", "1.6.1.v201312101416"
 		unit "org.easymock", "2.4.0.v20090202-0900"
 	}
+*/
 /*
 	location "http://download.eclipse.org/nebula/releases/1.2.0/", {
 		unit "org.eclipse.nebula.cwt", "1.0.0.201703081533"

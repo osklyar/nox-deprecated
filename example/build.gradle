@@ -8,10 +8,6 @@ buildscript {
   }
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = "3.2.1"
-}
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // platform definition
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -28,10 +24,39 @@ getsdk {
 	version = "4.7.3"
 }
 
-repositories {
-	// for converting maven artifacts to bundles
-	jcenter()
+repositories.jcenter()
+
+create {
+	location "http://download.eclipse.org/eclipse/updates/4.6/", {
+		unit "org.eclipse.sdk.ide", "4.6.0.I20160606-1100"
+		unit "com.ibm.icu", "56.1.0.v201601250100"
+	}
 }
 
-apply from: "platform/bundles.gradle"
-apply from: "platform/create.gradle"
+bundles {
+	rule {
+		optionals("org.xml.sax")
+	}
+
+	rule "org.apache.geronimo.specs", "geronimo-j2ee-management_1.1_spec", {
+		symbolicName "javax.management"
+	}
+	rule "org.apache.geronimo.specs", "geronimo-jms_1.1_spec", {
+		symbolicName "javax.jms"
+	}
+	rule "com.fasterxml.jackson.core", "jackson-annotations", {
+		symbolicName "com.fasterxml.jackson.annotations"
+	}
+	rule "com.fasterxml.jackson.core", "jackson-core", {
+		symbolicName "com.fasterxml.jackson.core"
+	}
+	rule "com.fasterxml.jackson.core", "jackson-databind", {
+		symbolicName "com.fasterxml.jackson.databind"
+	}
+
+	bundle "org.apache.activemq", "activemq-broker", "5.+"
+
+	bundle "org.apache.activemq", "activemq-client", "5.+"
+
+	bundle "org.hamcrest", "hamcrest-core", "1.3"
+}
