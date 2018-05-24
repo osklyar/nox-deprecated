@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.collect.Lists;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
@@ -22,6 +20,8 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.util.ConfigureUtil;
+
+import com.google.common.collect.Lists;
 
 import groovy.lang.Closure;
 import nox.ext.Platform;
@@ -144,6 +144,7 @@ public class Create extends DefaultTask {
 		public void unit(String id, String version) {
 			units.add(new Unit(id, version));
 		}
+
 		public void unit(String jarFile) {
 			String[] parts = jarFile.replace(".jar", "").split("_");
 			if (parts.length == 2) {

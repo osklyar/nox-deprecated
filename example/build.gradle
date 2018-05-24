@@ -54,9 +54,21 @@ bundles {
 		symbolicName "com.fasterxml.jackson.databind"
 	}
 
-	bundle "org.apache.activemq", "activemq-broker", "5.+"
+	bundle "org.apache.activemq", "activemq-broker", "5.+", {
+		optionals("org.apache.activemq.jaas")
+	}
 
 	bundle "org.apache.activemq", "activemq-client", "5.+"
 
 	bundle "org.hamcrest", "hamcrest-core", "1.3"
+
+	bundle "com.fasterxml.jackson.core", "jackson-databind", "2.9.4", {
+		replaceOSGiManifest true
+	}
+
+	bundle "org.slf4j", "slf4j-api", "1.7.25", {
+		optionals("org.slf4j.impl")
+		replaceOSGiManifest true
+	}
+
 }
